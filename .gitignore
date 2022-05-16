@@ -1,5 +1,10 @@
 **/*.pyc
 **/*.so
 **/build
+concorde_tmpfiles
+LKH
 result
 SRC/OBJ
+test/*.pkl
+train/*.pkl
+val/*.pkl
