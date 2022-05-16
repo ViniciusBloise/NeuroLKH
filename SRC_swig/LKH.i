@@ -24,7 +24,7 @@ import_array();
 
 %apply (double* INPLACE_ARRAY1, int DIM1) {(double* invec, int n)}
 
-long long main(int deep, int num_runs, int r_seed, int num_nodes, double* invec, int n);
+long long lkh_main(int deep, int num_runs, int r_seed, int num_nodes, double* invec, int n);
 int featureGenerate(int r_seed, double* invec, int n);
 void getNodeDegree(int r_seed, double* invec, int n);
 

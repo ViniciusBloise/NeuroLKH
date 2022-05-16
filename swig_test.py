@@ -5,7 +5,7 @@ import tqdm
 import numpy as np
 import pickle
 from net.sgcn_model import SparseGCNModel
-from SRC_swig.LKH import main as LKH
+from SRC_swig.LKH import lkh_main as LKH
 from SRC_swig.LKH import featureGenerate
 import torch
 from torch.autograd import Variable

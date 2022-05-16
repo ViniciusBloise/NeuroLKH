@@ -1,5 +1,8 @@
 cd SRC_swig
 swig -python LKH.i
-python3 setup.py build_ext
-cd ..
-cp SRC_swig/build/lib.*/_LKH.*.so ./
+python setup.py build_ext -i
+# use `-i` (`--inplace`) and the following commands are not needed any more.
+# https://www.swig.org/Doc1.3/Python.html#Python_nn6
+# #####
+# cd ..
+# cp SRC_swig/build/lib.*/_LKH.*.so ./

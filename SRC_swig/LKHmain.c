@@ -9,7 +9,7 @@
  *               100 for node orders, 100 for node Pi if read_pi
  */
 
-long long main(int deep, int num_runs, int r_seed, int num_nodes, double* invec, int n)
+long long lkh_main(int deep, int num_runs, int r_seed, int num_nodes, double* invec, int n)
 {
     GainType Cost, OldOptimum;
     double Time, LastTime = GetTime();
