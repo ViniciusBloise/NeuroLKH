@@ -15,18 +15,17 @@ def method_wrapper(args):
         return generate_feat(*args[1:])
 
 
-def solve_LKH(data, n_nodes, max_trials=1000):
+def solve_LKH(data, n_nodes, seed=1234, max_trials=1000):
     invec = data.copy()
-    seed = 1234
     result = LKH(0, max_trials, seed, n_nodes, invec)
     return invec
 
 
-def generate_feat(data, n_nodes):
+def generate_feat(data, n_nodes, seed=1234):
     n_edges = 20
     data = np.array(data)
     invec = np.concatenate([data.reshape(-1) * 1000000, np.zeros([n_nodes * (3 * n_edges - 2)])], -1)
-    feat_runtime = featureGenerate(1234, invec)
+    feat_runtime = featureGenerate(seed, invec)
     edge_index = invec[:n_nodes * n_edges].reshape(1, -1, 20)
     edge_feat = invec[n_nodes * n_edges:n_nodes * n_edges * 2].reshape(1, -1, 20)
     inverse_edge_index = invec[n_nodes * n_edges * 2:n_nodes * n_edges * 3].reshape(1, -1, 20)
@@ -59,8 +58,7 @@ def infer_SGN(net, dataset_node_feat, dataset_edge_index, dataset_edge_feat, dat
     return candidate_Pi
 
 
-def solve_NeuroLKH(data, n_nodes, max_trials=1000):
+def solve_NeuroLKH(data, n_nodes, tour_filepath, seed, max_trials=1000):
     invec = data.copy()
-    seed = 1234
-    result = LKH(1, max_trials, seed, n_nodes, invec)
+    result = LKH(1, max_trials, seed, n_nodes, invec, tour_filepath)
     return invec

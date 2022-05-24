@@ -9,7 +9,7 @@
  *               100 for node orders, 100 for node Pi if read_pi
  */
 
-long long lkh_main(int deep, int num_runs, int r_seed, int num_nodes, double* invec, int n)
+long long lkh_main(int deep, int num_runs, int r_seed, int num_nodes, double* invec, int n, char *output_tour_file) //
 {
     GainType Cost, OldOptimum;
     double Time, LastTime = GetTime();
@@ -21,6 +21,7 @@ long long lkh_main(int deep, int num_runs, int r_seed, int num_nodes, double* in
 
     ReadParameters();
     Seed = (unsigned) r_seed;
+    OutputTourFileName = output_tour_file;
     MaxMatrixDimension = 20000;
     MergeWithTour = Recombination == IPT ? MergeWithTourIPT :
         MergeWithTourGPX2;
