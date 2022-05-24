@@ -4,7 +4,11 @@
 concorde_tmpfiles
 LKH
 result
+
 SRC/OBJ
+SRC_swig/LKH.py
+SRC_swig/LKH_wrap.c
+
 test/*.pkl
 train/*.pkl
 val/*.pkl
