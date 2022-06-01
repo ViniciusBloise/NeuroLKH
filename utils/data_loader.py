@@ -1,5 +1,5 @@
 import pickle
-import numpy as np
+
 
 class DataLoader(object):
     def __init__(self, file_path, batch_size, problem="tsp"):
@@ -7,7 +7,7 @@ class DataLoader(object):
         self.batch_size = batch_size
         if problem == "pdp" or problem == "cvrptw":
             self.n_ranges = 16
-        else:
+        else:  # TSP
             self.n_ranges = 40
         self.problem = problem
         # self.epoch_size = 10000 * self.n_ranges
@@ -20,10 +20,14 @@ class DataLoader(object):
                 n_nodes = 42 + 10 * i + index
             elif self.problem == "cvrptw":
                 n_nodes = 41 + 10 * i + index
-            else:
+            else:  # TSP
                 n_nodes = 101 + 10 * i + index
             loading_datasets.append(n_nodes)
-            with open(self.file_path + "/" + str(n_nodes) + ".pkl", "rb") as f:
+
+            # TMP training data file name
+            file_name = f"clust{n_nodes}_seed{n_nodes * 10 + 1}.feat.pkl"
+
+            with open(self.file_path + "/" + file_name, "rb") as f:
                 self.dataset.append(pickle.load(f))
         print ("load datasets wtih nodes " + ", ".join([str(_) for _ in loading_datasets]))
         self.batch_index = 0

@@ -1,20 +1,22 @@
-import os
 import argparse
-import numpy as np
-from utils.data_loader import DataLoader
-import glob
-from tqdm import trange
-from net.sgcn_model import SparseGCNModel
-from sklearn.utils.class_weight import compute_class_weight
-import torch
-from torch.autograd import Variable
-from SRC_swig.LKH import getNodeDegree
+import os
 import pickle
 
+import numpy as np
+import torch
+from sklearn.utils.class_weight import compute_class_weight
+from torch.autograd import Variable
+from torch.utils.tensorboard import SummaryWriter
+from tqdm import trange
+
+from net.sgcn_model import SparseGCNModel
+from SRC_swig.LKH import getNodeDegree
+from utils.data_loader import DataLoader
+
 parser = argparse.ArgumentParser(description='')
-parser.add_argument('--file_path', default='train', help='')
-parser.add_argument('--eval_file_path', default='val', help='')
-parser.add_argument('--n_epoch', type=int, default=10000, help='')
+parser.add_argument('--file_path', default='train', help='training data dir')
+parser.add_argument('--eval_file_path', default='val', help='validation data dir')
+parser.add_argument('--n_epoch', type=int, default=10000, help='maximal number of training epochs')
 parser.add_argument('--eval_interval', type=int, default=1, help='')
 parser.add_argument('--eval_batch_size', type=int, default=20, help='')
 parser.add_argument('--n_hidden', type=int, default=128, help='')
@@ -36,6 +38,8 @@ edge_cw = None
 optimizer = torch.optim.Adam(net.parameters(), lr=args.learning_rate)
 
 os.makedirs(args.save_dir, exist_ok=True)
+print("saved to", args.save_dir)
+writer = SummaryWriter(log_dir=args.save_dir)
 
 epoch = 0
 if args.load_pt:
@@ -43,6 +47,7 @@ if args.load_pt:
     epoch = saved["epoch"]
     net.load_state_dict(saved["model"])
     optimizer.load_state_dict(saved["optimizer"])
+
 while epoch < args.n_epoch:
     statistics = {"loss_train": [],
                   "loss_test": []}
@@ -51,7 +56,7 @@ while epoch < args.n_epoch:
     net.train()
     dataset_index = epoch % 10
     dataLoader.load_data(dataset_index)
-    for batch in trange(125 * 40):
+    for batch in trange(125 * 40, desc="training", bar_format='{l_bar}{bar:20}{r_bar}{bar:-20b}', leave=False):
         node_feat, edge_feat, label, edge_index, inverse_edge_index = dataLoader.next_batch()
         batch_size = node_feat.shape[0]
         node_feat = Variable(torch.FloatTensor(node_feat).type(torch.cuda.FloatTensor), requires_grad=False)
@@ -92,16 +97,22 @@ while epoch < args.n_epoch:
         rank_batch[np.arange(batch_size * n_nodes).reshape(-1, 1), np.argsort(-y_edges[:, :, 1].reshape(-1, n_edges))] = np.tile(np.arange(n_edges), (batch_size * n_nodes, 1))
         rank_train[(n_nodes - 101) // 20].append((rank_batch.reshape(-1) * label.reshape(-1)).sum() / label.sum())
         Norms_train[(n_nodes - 101) // 20].append(np.mean(Norms))
-    print ("Epoch {} loss {:.7f} rank:".format(epoch, np.mean(statistics["loss_train"])), ",".join([str(np.mean(rank_train[_]) + 1)[:5] for _ in range(20)]))
+    loss_train = np.mean(statistics["loss_train"])
+    print ("* Epoch {} loss {:.7f} rank:".format(epoch, loss_train), ",".join([str(np.mean(rank_train[_]) + 1)[:5] for _ in range(20)]))
     print ("Norms: ", ",".join([str(np.mean(Norms_train[_]))[:5] for _ in range(20)]))
+
+    writer.add_scalar("loss_train", loss_train, epoch)
 
     if epoch % args.eval_interval == 0:
         eval_results = []
         for n_node in [100, 200, 500]:
-            dataset = pickle.load(open(args.eval_file_path + "/" + str(n_node) + ".pkl", "rb"))
+            # TMP val data file name
+            file_name = f"clust{n_node}_seed{n_node * 10 + 5}.feat.pkl"
+
+            dataset = pickle.load(open(args.eval_file_path + "/" + file_name, "rb"))
             dataset_rank = []
             dataset_norms = []
-            for eval_batch in trange(1000 // args.eval_batch_size):
+            for eval_batch in trange(1000 // args.eval_batch_size, disable=True):
                 node_feat = dataset["node_feat"][eval_batch * args.eval_batch_size:(eval_batch + 1) * args.eval_batch_size]
                 edge_feat = dataset["edge_feat"][eval_batch * args.eval_batch_size:(eval_batch + 1) * args.eval_batch_size]
                 edge_index = dataset["edge_index"][eval_batch * args.eval_batch_size:(eval_batch + 1) * args.eval_batch_size]
@@ -130,8 +141,8 @@ while epoch < args.n_epoch:
                     dataset_norms.append(np.mean(Norms))
             eval_results.append(np.mean(dataset_rank) + 1)
             eval_results.append(np.mean(dataset_norms))
-        print ("n=100 %.3f %d, n=200 %.3f %d, n=500 %.3f %d" % (tuple(eval_results)))
+        print("n=100 %.3f %d, n=200 %.3f %d, n=500 %.3f %d" % (tuple(eval_results)))
 
     epoch += 1
     if epoch % args.save_interval == 0:
-        torch.save({"epoch": epoch, "model": net.state_dict(), "optimizer": optimizer.state_dict()}, args.save_dir + "/" + str(epoch) + ".pt")
+        torch.save({"epoch": epoch, "model": net.state_dict(), "optimizer": optimizer.state_dict()}, f"{args.save_dir}/epoch-{epoch}.pt")
