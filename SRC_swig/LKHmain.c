@@ -9,7 +9,7 @@
  *               100 for node orders, 100 for node Pi if read_pi
  */
 
-long long lkh_main(int deep, int num_runs, int r_seed, int num_nodes, double* invec, int n, char *output_tour_file) //
+long long lkh_main(int deep, int num_runs, int max_trials, int r_seed, int num_nodes, double* invec, int n, char *output_tour_file) //
 {
     GainType Cost, OldOptimum;
     double Time, LastTime = GetTime();
@@ -55,7 +55,8 @@ long long lkh_main(int deep, int num_runs, int r_seed, int num_nodes, double* in
         ReadPenalties(invec);
         Subgradient = 0;
     }
-    MaxTrials = num_runs;
+    Runs = num_runs;
+    MaxTrials = max_trials;
     CreateCandidateSet(invec);
     InitializeStatistics();
     if (NeuroLKH) {

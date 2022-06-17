@@ -58,7 +58,7 @@ def infer_SGN(net, dataset_node_feat, dataset_edge_index, dataset_edge_feat, dat
     return candidate_Pi
 
 
-def solve_NeuroLKH(data, n_nodes, tour_filepath, seed, max_trials=1000):
+def solve_NeuroLKH(data, n_nodes, tour_filepath, seed, num_runs=1, max_trials=1000):
     invec = data.copy()
-    result = LKH(1, max_trials, seed, n_nodes, invec, tour_filepath)
+    result = LKH(1, num_runs, max_trials, seed, n_nodes, invec, tour_filepath)
     return invec
