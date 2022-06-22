@@ -1,6 +1,54 @@
-A fork of [liangxinedu/NeuroLKH](https://github.com/liangxinedu/NeuroLKH)
+A fork of [liangxinedu/NeuroLKH](https://github.com/liangxinedu/NeuroLKH), used as a submodule of yzhang-gh/benchmarking-tsp
+
+### List of Changes
+
+- renamed `main` to `lkh_main` (`LKH.i`, `LKHmain.c` and `swig_test.py`) to avoid name collision
+- fixed `setup.sh`
+- renamed `num_runs` (function `lkh_main`) to `max_trials` to better reflect its usage
+- it now accepts `seed`, `num_runs` and `output_tour_file` as NeuroLKH arguments
+- excluded pretrained models from Git
+- some of the code format
 
 ---
+
+<details>
+<summary><strong>original <code>README</code></strong></summary>
+
+An example output of command
+
+```bash
+python swig_test.py --dataset test/rue100.pkl --model_path pretrained/neurolkh.pt --n_samples 1000 \
+       --lkh_trials 1000 --neurolkh_trials 1000
+```
+
+```
+generating features runtime: 1.3s SGN inferring runtime: 3.5s
+------experiments of trials: 1 ------
+LKH      7748743 51s
+NeuroLKH 7747887 21s
+------experiments of trials: 10 ------
+LKH      7747800 68s
+NeuroLKH 7747237 34s
+------experiments of trials: 100 ------
+LKH      7747121 222s
+NeuroLKH 7746973 143s
+------experiments of trials: 1000 ------
+LKH      7746977 1715s
+NeuroLKH 7746948 1199s
+------comparison with same time limit------
+------experiments of trials: 1 ------
+LKH      7748743 51s
+NeuroLKH 7747038 52s (24 trials)
+------experiments of trials: 10 ------
+LKH      7747800 68s
+NeuroLKH 7747009 69s (38 trials)
+------experiments of trials: 100 ------
+LKH      7747121 222s
+NeuroLKH 7746959 223s (166 trials)
+------experiments of trials: 1000 ------
+LKH      7746977 1715s
+NeuroLKH 7746948 1199s (1000 trials)
+```
 
 # NeuroLKH: Combining Deep Learning Model with Lin-Kernighan-Helsgaun Heuristic for Solving the Traveling Salesman Problem
 
@@ -124,3 +172,5 @@ CUDA_VISIBLE_DEVICES="0" python CVRPTW_train.py --save_dir=saved/cvrptw_neurolkh
 
 * The LKH code is the 3.0.6 version (http://www.akira.ruc.dk/~keld/research/LKH-3/LKH-3.0.6.tgz)
 * The code for Sparse Graph Network is build on the code framework of 'An Efficient Graph Convolutional Network Technique for the Travelling Salesman Problem' (INFORMS Annual Meeting Session 2019) (https://github.com/chaitjo/graph-convnet-tsp)
+
+</details>
