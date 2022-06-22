@@ -21,7 +21,9 @@ long long lkh_main(int deep, int num_runs, int max_trials, int r_seed, int num_n
 
     ReadParameters();
     Seed = (unsigned) r_seed;
-    OutputTourFileName = output_tour_file;
+    if (strlen(output_tour_file) != 0) {
+        OutputTourFileName = output_tour_file;
+    }
     MaxMatrixDimension = 20000;
     MergeWithTour = Recombination == IPT ? MergeWithTourIPT :
         MergeWithTourGPX2;

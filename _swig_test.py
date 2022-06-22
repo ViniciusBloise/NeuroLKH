@@ -22,6 +22,12 @@ def solve_LKH(data, n_nodes, seed=1234, max_trials=1000):
     return invec
 
 
+def solve_NeuroLKH(data, n_nodes, tour_filepath, seed, num_runs=1, max_trials=1000):
+    invec = data.copy()
+    result = LKH(1, num_runs, max_trials, seed, n_nodes, invec, tour_filepath)
+    return invec
+
+
 def generate_feat(data, n_nodes, seed=1234):
     n_edges = 20
     data = np.array(data)
@@ -57,9 +63,3 @@ def infer_SGN(net, dataset_node_feat, dataset_edge_index, dataset_edge_feat, dat
     pi = np.concatenate(pi, 0)
     candidate_Pi = np.concatenate([candidate.reshape(dataset_edge_index.shape[0], -1), 1000000 * pi.reshape(dataset_edge_index.shape[0], -1)], -1)
     return candidate_Pi
-
-
-def solve_NeuroLKH(data, n_nodes, tour_filepath, seed, num_runs=1, max_trials=1000):
-    invec = data.copy()
-    result = LKH(1, num_runs, max_trials, seed, n_nodes, invec, tour_filepath)
-    return invec

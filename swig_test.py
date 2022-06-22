@@ -22,10 +22,14 @@ def method_wrapper(args):
     elif args[0] == "FeatGen":
         return generate_feat(*args[1:])
 
-def solve_LKH(data, n_nodes, max_trials=1000):
+def solve_LKH(data, n_nodes, max_trials=1000, tour_filepath="", seed=1234, num_runs=1):
     invec = data.copy()
-    seed = 1234
-    result = LKH(0, max_trials, seed, n_nodes, invec)
+    result = LKH(0, num_runs, max_trials, seed, n_nodes, invec, tour_filepath)
+    return invec
+
+def solve_NeuroLKH(data, n_nodes, max_trials=1000, tour_filepath="", seed=1234, num_runs=1):
+    invec = data.copy()
+    result = LKH(1, num_runs, max_trials, seed, n_nodes, invec, tour_filepath)
     return invec
 
 def generate_feat(data, n_nodes):
@@ -62,12 +66,6 @@ def infer_SGN(net, dataset_node_feat, dataset_edge_index, dataset_edge_feat, dat
     pi = np.concatenate(pi, 0)
     candidate_Pi = np.concatenate([candidate.reshape(dataset_edge_index.shape[0], -1), 1000000 * pi.reshape(dataset_edge_index.shape[0], -1)], -1)
     return candidate_Pi
-
-def solve_NeuroLKH(data, n_nodes, max_trials=1000):
-    invec = data.copy()
-    seed = 1234
-    result = LKH(1, max_trials, seed, n_nodes, invec)
-    return invec
 
 def eval_dataset(dataset_filename, method, args, rerun=True, max_trials=1000):
     dataset_name = dataset_filename.strip(".pkl").split("/")[-1]
