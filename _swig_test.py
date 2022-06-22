@@ -1,3 +1,4 @@
+import math
 import numpy as np
 import torch
 from torch.autograd import Variable
@@ -35,7 +36,7 @@ def generate_feat(data, n_nodes, seed=1234):
 def infer_SGN(net, dataset_node_feat, dataset_edge_index, dataset_edge_feat, dataset_inverse_edge_index, batch_size=100):
     candidate = []
     pi = []
-    for i in range(dataset_edge_index.shape[0] // batch_size):
+    for i in range(math.ceil(dataset_edge_index.shape[0] / batch_size)):
         node_feat = dataset_node_feat[i * batch_size:(i + 1) * batch_size]
         edge_index = dataset_edge_index[i * batch_size:(i + 1) * batch_size]
         edge_feat = dataset_edge_feat[i * batch_size:(i + 1) * batch_size]
