@@ -1,4 +1,5 @@
 #include "Sequence.h"
+#include "Sequence_var.h"
 #include "Segment.h"
 
 /*

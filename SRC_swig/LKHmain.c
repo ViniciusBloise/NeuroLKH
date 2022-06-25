@@ -1,6 +1,8 @@
 #include "LKH.h"
 #include "Genetic.h"
 #include "BIT.h"
+#include "LKH_var.h"
+#include "Genetic_var.h"
 
 /*
  * This file contains the main function of the program.

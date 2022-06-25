@@ -11,6 +11,7 @@
 
 #include "LKH.h"
 #include "gpx.h"
+#include "gpx_var.h"
 
 // GPX2
 GainType gpx(int *solution_blue, int *solution_red, int *offspring)
