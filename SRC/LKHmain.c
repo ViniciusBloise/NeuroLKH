@@ -23,13 +23,13 @@ int main(int argc, char *argv[])
         MergeWithTourGPX2;
     ReadProblem();
     if (GeneratingFeature && ProblemType == TSP) {
-	printf ("Generating Features\n");
-	featureGenerate();
-	return;
+        printf ("Generating Features\n");
+        featureGenerate();
+        return 0;
     }
     if (GeneratingFeature) {
-	CreateCandidateSet();
-	return;
+        CreateCandidateSet();
+        return 0;
     }
     if (SubproblemSize > 0) {
         if (DelaunayPartitioning)

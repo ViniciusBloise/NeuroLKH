@@ -6,8 +6,10 @@ import os
 import tqdm
 import argparse
 
+
 def run_wrapper(args):
     return run(*args)
+
 
 def run(n_nodes, file_dir="train"):
     os.makedirs("concorde_tmpfiles/" + file_dir + "_" + str(n_nodes), exist_ok=True)
@@ -23,44 +25,49 @@ def run(n_nodes, file_dir="train"):
     x = np.random.uniform(size=[n_samples, n_nodes, 2])
 
     f = 10000000
-    result=[]
+    result = []
     for i in range(n_samples):
-        solver = TSPSolver.from_data(x[i,:,0]*f, x[i,:,1]*f, norm='EUC_2D')
-        solution=solver.solve()
-        q=solution.tour
-        q=[int(p) for p in q]
+        solver = TSPSolver.from_data(x[i, :, 0] * f, x[i, :, 1] * f, norm='EUC_2D')
+        solution = solver.solve()
+        q = solution.tour
+        q = [int(p) for p in q]
         result.append(q)
-     
+
     dist = x.reshape(n_samples, n_nodes, 1, 2) - x.reshape(n_samples, 1, n_nodes, 2)
-    dist = np.sqrt((dist ** 2).sum(-1)) # 10000 x 100 x 100
+    dist = np.sqrt((dist ** 2).sum(-1))  # 10000 x 100 x 100
     edge_index = np.argsort(dist, -1)[:, :, 1:1 + n_neighbours]
     edge_feat = dist[np.arange(n_samples).reshape(-1, 1, 1), np.arange(n_nodes).reshape(1, -1, 1), edge_index]
 
-    result = np.array(result) # n_samples x n_nodes
+    result = np.array(result)  # n_samples x n_nodes
     label = np.zeros(shape=[n_samples, n_nodes, n_nodes], dtype="bool")
     label[np.arange(n_samples).reshape(-1, 1), result, np.roll(result, 1, -1)] = True
     label[np.arange(n_samples).reshape(-1, 1), np.roll(result, 1, -1), result] = True
     label = label[np.arange(n_samples).reshape(-1, 1, 1), np.arange(n_nodes).reshape(1, -1, 1), edge_index]
 
-    feat = {"node_feat":x, # n_samples x n_nodes x 2
-            "edge_feat":edge_feat, # n_samples x n_nodes x n_neighbours
-            "edge_index":edge_index, # n_samples x n_nodes x n_neighbours
-            "label":label} # n_samples x n_nodes x n_neighbours
+    feat = {"node_feat": x,  # n_samples x n_nodes x 2
+            "edge_feat": edge_feat,  # n_samples x n_nodes x n_neighbours
+            "edge_index": edge_index,  # n_samples x n_nodes x n_neighbours
+            "label": label}  # n_samples x n_nodes x n_neighbours
 
     x = feat["node_feat"]
     assert x.shape[0] == n_samples
     dist = x.reshape(n_samples, n_nodes, 1, 2) - x.reshape(n_samples, 1, n_nodes, 2)
-    dist = np.sqrt((dist ** 2).sum(-1)) # 10000 x 100 x 100
+    dist = np.sqrt((dist ** 2).sum(-1))  # 10000 x 100 x 100
     edge_index = np.argsort(dist, -1)[:, :, 1:1 + n_neighbours]
     inverse_edge_index = -np.ones(shape=[n_samples, n_nodes, n_nodes], dtype="int")
-    inverse_edge_index[np.arange(n_samples).reshape(-1, 1, 1), edge_index, np.arange(n_nodes).reshape(1, -1, 1)] = np.arange(n_neighbours).reshape(1, 1, -1) + np.arange(n_nodes).reshape(1, -1, 1) * n_neighbours
-    inverse_edge_index = inverse_edge_index[np.arange(n_samples).reshape(-1, 1, 1), np.arange(n_nodes).reshape(1, -1, 1), edge_index]
+    inverse_edge_index[
+        np.arange(n_samples).reshape(-1, 1, 1), edge_index, np.arange(n_nodes).reshape(1, -1, 1)] = np.arange(
+        n_neighbours).reshape(1, 1, -1) + np.arange(n_nodes).reshape(1, -1, 1) * n_neighbours
+    inverse_edge_index = inverse_edge_index[
+        np.arange(n_samples).reshape(-1, 1, 1), np.arange(n_nodes).reshape(1, -1, 1), edge_index]
     assert (np.array_equal(edge_index, feat["edge_index"]))
     feat["inverse_edge_index"] = inverse_edge_index
 
     os.chdir("../..")
     with open(file_dir + "/" + str(n_nodes) + ".pkl", "wb") as f:
         pickle.dump(feat, f)
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='')
     parser.add_argument("-train", action='store_true', help="Generate training and validation datasets")
