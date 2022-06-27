@@ -12,3 +12,4 @@ SRC_swig/LKH_wrap.c
 test/*.pkl
 train/*.pkl
 val/*.pkl
+.idea/
