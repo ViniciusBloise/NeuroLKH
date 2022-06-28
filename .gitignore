@@ -8,7 +8,7 @@ result
 SRC/OBJ
 SRC_swig/LKH.py
 SRC_swig/LKH_wrap.c
-
+SRC_swig
 test/*.pkl
 train/*.pkl
 val/*.pkl

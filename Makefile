@@ -1,4 +1,4 @@
 all:
-	make -C SRC
+	make -C SRC_swig
 clean:
-	make -C SRC clean
+	make -C SRC_swig clean

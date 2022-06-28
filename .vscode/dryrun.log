@@ -1,0 +1,5 @@
+make all --dry-run --always-make --keep-going --print-directory
+make: Entering directory `/Users/vbloise/Desktop/MasterInAI/MT-Umberto/Project/NeuroLKH'
+make -C SRC_swig
+make: Leaving directory `/Users/vbloise/Desktop/MasterInAI/MT-Umberto/Project/NeuroLKH'
+ 
