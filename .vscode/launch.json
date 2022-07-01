@@ -34,10 +34,10 @@
             "MIMode": "lldb"
         },
         {
-            "name": "C/C++: clang build and debug active file",
+            "name": "C/C++: clang build and debug main file",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${fileDirname}/${fileBasenameNoExtension}",
+            "program": "${workspaceFolder}/LKH",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${fileDirname}",

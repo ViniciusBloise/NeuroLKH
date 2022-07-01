@@ -2,7 +2,7 @@
     "tasks": [
         {
             "type": "shell",
-            "label": "C/C++: clang build active file",
+            "label": "C/C++: clang build main file",
             "command": "/usr/bin/clang",
             "args": [
                 "-fdiagnostics-color=always",

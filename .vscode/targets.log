@@ -8,7 +8,8 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 # This program built for i386-apple-darwin11.3.0
  
 
-# Make data base, printed on Tue Jun 28 18:25:09 2022
+# Make data base, printed on Wed Jun 29 21:24:36 2022
+ 
 
 # Variables
 
@@ -39,13 +40,13 @@ VSCODE_VERBOSE_LOGGING = true
 # environment
 __CFBundleIdentifier = com.microsoft.VSCode
 # environment
-VSCODE_IPC_HOOK_EXTHOST = /var/folders/gh/5tz9yqrj5ng4l8bjsvxmgpgc0000gn/T/vscode-ipc-4cae14c0-c0e5-4749-af33-d963b13dcdf9.sock
+VSCODE_IPC_HOOK_EXTHOST = /var/folders/gh/5tz9yqrj5ng4l8bjsvxmgpgc0000gn/T/vscode-ipc-03eb7090-f580-4047-8124-8941a5372481.sock
 # environment
 VSCODE_CWD = /
 # environment
 PATH = /Users/vbloise/miniconda3/bin:/Users/vbloise/miniconda3/condabin:/opt/local/bin:/opt/local/sbin:/usr/local/Cellar/python@3.9/3.9.1_8/Frameworks/Python.framework/Versions/3.9/bin:/usr/local/bin:/usr/local/opt/openssl/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/Applications/VMware Fusion.app/Contents/Public:/Library/TeX/texbin:/Applications/Wireshark.app/Contents/MacOS:/Users/vbloise/.local/bin
 # environment
-LaunchInstanceID = 58EC16A6-7C68-4FFC-9597-538BB88B07B9
+LaunchInstanceID = 408BE0FD-F56E-45DE-9AE2-997BFC8D8A28
 # environment
 VSCODE_LOG_STACK = false
 # environment
@@ -53,7 +54,7 @@ ELECTRON_RUN_AS_NODE = 1
 # default
 .FEATURES := target-specific order-only second-expansion else-if archives jobserver check-symlink
 # environment
-SSH_AUTH_SOCK = /private/tmp/com.apple.launchd.MaSp8xYQ5W/Listeners
+SSH_AUTH_SOCK = /private/tmp/com.apple.launchd.DG8quHFJei/Listeners
 # automatic
 %F = $(notdir $%)
 # environment
@@ -133,7 +134,6 @@ COMMAND_MODE = unix2003
 # default
 MAKEFILES := 
 # automatic
- 
 <F = $(notdir $<)
 # environment
 LC_ALL = C
@@ -154,7 +154,7 @@ MAKELEVEL := 0
 # environment
 CONDA_PREFIX = /Users/vbloise/miniconda3
 # environment
-VSCODE_PID = 527
+VSCODE_PID = 529
 # environment
 _CE_CONDA = 
 # environment
@@ -163,14 +163,15 @@ LANG = C
 # Load=73/1024=7%, Rehash=0, Collisions=2/99=2%
 
 # Pattern-specific Variable Values
+ 
 
 # No pattern-specific variable values.
 
 # Directories
 
-# . (device 16777220, inode 105162942): 36 files, no impossibilities.
+# . (device 16777220, inode 105162942): 39 files, no impossibilities.
 
-# 36 files, no impossibilities in 1 directories.
+# 39 files, no impossibilities in 1 directories.
 
 # Implicit Rules
 
@@ -204,7 +205,7 @@ all:
 # variable set hash-table stats:
 # Load=8/32=25%, Rehash=0, Collisions=1/10=10%
 #  commands to execute (from `Makefile', line 2):
-	make -C SRC_swig
+	make -C SRC
 	
 
 # Not a target:
@@ -216,7 +217,7 @@ all:
 # Not a target:
 Makefile:
 #  Implicit rule search has been done.
-#  Last modified 2022-06-28 00:17:45
+#  Last modified 2022-06-28 19:22:16
 #  File has been updated.
 #  Successfully updated.
 # variable set hash-table stats:
@@ -233,7 +234,7 @@ clean:
 #  Modification time never checked.
 #  File has not been updated.
 #  commands to execute (from `Makefile', line 4):
-	make -C SRC_swig clean
+	make -C SRC clean
 	
 
 # files hash-table stats:
@@ -249,6 +250,6 @@ clean:
 # strcache size: total = 4096 / max = 4096 / min = 4096 / avg = 4096
 # strcache free: total = 4087 / max = 4087 / min = 4087 / avg = 4087
 
-# Finished Make data base on Tue Jun 28 18:25:09 2022
+# Finished Make data base on Wed Jun 29 21:24:36 2022
 
  
