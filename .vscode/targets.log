@@ -8,7 +8,7 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 # This program built for i386-apple-darwin11.3.0
  
 
-# Make data base, printed on Wed Jul  6 06:03:34 2022
+# Make data base, printed on Wed Jul  6 19:40:57 2022
 
 # Variables
 
@@ -19,7 +19,6 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 # environment
 VSCODE_LOG_NATIVE = false
 # automatic
- 
 ?D = $(patsubst %/,%,$(dir $?))
 # automatic
 @D = $(patsubst %/,%,$(dir $@))
@@ -28,6 +27,7 @@ VSCODE_LOG_NATIVE = false
 # makefile
 CURDIR := /Users/vbloise/Desktop/MasterInAI/MT-Umberto/Project/NeuroLKH
 # makefile
+ 
 SHELL = /bin/sh
 # environment
 VSCODE_NLS_CONFIG = {"locale":"en-us","availableLanguages":{},"_languagePackSupport":true}
@@ -40,13 +40,13 @@ VSCODE_VERBOSE_LOGGING = true
 # environment
 __CFBundleIdentifier = com.microsoft.VSCode
 # environment
-VSCODE_IPC_HOOK_EXTHOST = /var/folders/gh/5tz9yqrj5ng4l8bjsvxmgpgc0000gn/T/vscode-ipc-0426e021-d535-48f7-9f7d-3f534e639045.sock
+VSCODE_IPC_HOOK_EXTHOST = /var/folders/gh/5tz9yqrj5ng4l8bjsvxmgpgc0000gn/T/vscode-ipc-8f72d3ff-bd69-47a5-9b7f-168d9ab879a5.sock
 # environment
 VSCODE_CWD = /
 # environment
 PATH = /Users/vbloise/miniconda3/bin:/Users/vbloise/miniconda3/condabin:/opt/local/bin:/opt/local/sbin:/usr/local/Cellar/python@3.9/3.9.1_8/Frameworks/Python.framework/Versions/3.9/bin:/usr/local/bin:/usr/local/opt/openssl/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/Applications/VMware Fusion.app/Contents/Public:/Library/TeX/texbin:/Applications/Wireshark.app/Contents/MacOS:/Users/vbloise/.local/bin
 # environment
-LaunchInstanceID = CDEE393B-FBB3-4BD5-857B-2E5F3684F573
+LaunchInstanceID = B1A8EEC6-71F3-4E18-8C89-652CD63406FF
 # environment
 VSCODE_LOG_STACK = false
 # environment
@@ -54,7 +54,7 @@ ELECTRON_RUN_AS_NODE = 1
 # default
 .FEATURES := target-specific order-only second-expansion else-if archives jobserver check-symlink
 # environment
-SSH_AUTH_SOCK = /private/tmp/com.apple.launchd.CqtWlSDAYJ/Listeners
+SSH_AUTH_SOCK = /private/tmp/com.apple.launchd.o3TnkbDI5S/Listeners
 # automatic
 %F = $(notdir $%)
 # environment
@@ -129,7 +129,6 @@ XPC_SERVICE_NAME = application.com.microsoft.VSCode.104414147.104414153
 +F = $(notdir $+)
 # environment
 __CF_USER_TEXT_ENCODING = 0x1F5:0x0:0x0
- 
 # environment
 COMMAND_MODE = unix2003
 # default
@@ -141,7 +140,7 @@ LC_ALL = C
 # environment
 CONDA_PYTHON_EXE = /Users/vbloise/miniconda3/bin/python
 # environment
-SECURITYSESSIONID = 186a5
+SECURITYSESSIONID = 186a6
 # automatic
 ^F = $(notdir $^)
 # default
@@ -155,7 +154,7 @@ MAKELEVEL := 0
 # environment
 CONDA_PREFIX = /Users/vbloise/miniconda3
 # environment
-VSCODE_PID = 528
+VSCODE_PID = 574
 # environment
 _CE_CONDA = 
 # environment
@@ -175,6 +174,7 @@ LANG = C
 
 # Implicit Rules
 
+ 
 # No implicit rules.
 
 # Files
@@ -248,9 +248,8 @@ clean:
 # # of strings in strcache: 1
 # # of strcache buffers: 1
 # strcache size: total = 4096 / max = 4096 / min = 4096 / avg = 4096
- 
 # strcache free: total = 4087 / max = 4087 / min = 4087 / avg = 4087
 
-# Finished Make data base on Wed Jul  6 06:03:34 2022
+# Finished Make data base on Wed Jul  6 19:40:57 2022
 
  

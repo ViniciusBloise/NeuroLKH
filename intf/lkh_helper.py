@@ -102,7 +102,7 @@ def solve_LKH(dataset_name, instance, instance_name, rerun=False, max_trials=100
     log_filename = f"result/{dataset_name}/LKH_log/{instance_name}.log"
     instance_filename = f"result/{dataset_name}/tsp/{instance_name}.tsp"
     if rerun or not os.path.isfile(log_filename):
-        write_instance(instance, instance_name, instance_filename)
+        #write_instance(instance, instance_name, instance_filename)
         write_para(dataset_name, instance_name, instance_filename,
                    "LKH", para_filename, max_trials=max_trials)
         with open(log_filename, "w") as f:
