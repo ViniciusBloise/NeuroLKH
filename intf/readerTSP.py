@@ -93,3 +93,9 @@ class ReaderTSP:
     @staticmethod
     def load_optimal_solution(filename):
         return np.load(filename)
+    
+    @staticmethod
+    def load_optimal(filename):
+        with open(filename) as f:
+            data = f.read().split(' ')
+        return data

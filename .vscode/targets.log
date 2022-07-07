@@ -7,7 +7,7 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 
 # This program built for i386-apple-darwin11.3.0
 
-# Make data base, printed on Thu Jul  7 05:59:07 2022
+# Make data base, printed on Thu Jul  7 20:07:12 2022
 
 # Variables
 
@@ -38,13 +38,13 @@ VSCODE_VERBOSE_LOGGING = true
 # environment
 __CFBundleIdentifier = com.microsoft.VSCode
 # environment
-VSCODE_IPC_HOOK_EXTHOST = /var/folders/gh/5tz9yqrj5ng4l8bjsvxmgpgc0000gn/T/vscode-ipc-a6069e23-62d9-4014-bcc5-91e2b78519b5.sock
+VSCODE_IPC_HOOK_EXTHOST = /var/folders/gh/5tz9yqrj5ng4l8bjsvxmgpgc0000gn/T/vscode-ipc-0a4c32ae-04ad-4581-b473-60b24c483730.sock
 # environment
 VSCODE_CWD = /
 # environment
 PATH = /Users/vbloise/miniconda3/bin:/Users/vbloise/miniconda3/condabin:/opt/local/bin:/opt/local/sbin:/usr/local/Cellar/python@3.9/3.9.1_8/Frameworks/Python.framework/Versions/3.9/bin:/usr/local/bin:/usr/local/opt/openssl/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/Applications/VMware Fusion.app/Contents/Public:/Library/TeX/texbin:/Applications/Wireshark.app/Contents/MacOS:/Users/vbloise/.local/bin
 # environment
-LaunchInstanceID = C1401F7D-C0F6-4454-9657-BD8D3AE6C3D0
+LaunchInstanceID = A82D4618-DB91-4241-88CE-BC928D505C26
 # environment
 VSCODE_LOG_STACK = false
 # environment
@@ -52,7 +52,7 @@ ELECTRON_RUN_AS_NODE = 1
 # default
 .FEATURES := target-specific order-only second-expansion else-if archives jobserver check-symlink
 # environment
-SSH_AUTH_SOCK = /private/tmp/com.apple.launchd.ZlDuxfgJz4/Listeners
+SSH_AUTH_SOCK = /private/tmp/com.apple.launchd.kqGebj68Rb/Listeners
 # automatic
 %F = $(notdir $%)
 # environment
@@ -152,7 +152,7 @@ MAKELEVEL := 0
 # environment
 CONDA_PREFIX = /Users/vbloise/miniconda3
 # environment
-VSCODE_PID = 527
+VSCODE_PID = 526
 # environment
 _CE_CONDA = 
 # environment
@@ -247,6 +247,6 @@ clean:
 # strcache size: total = 4096 / max = 4096 / min = 4096 / avg = 4096
 # strcache free: total = 4087 / max = 4087 / min = 4087 / avg = 4087
 
-# Finished Make data base on Thu Jul  7 05:59:07 2022
+# Finished Make data base on Thu Jul  7 20:07:12 2022
 
  

@@ -22,9 +22,15 @@ print(positions)
 #Call the plotter
 plotter = PlotterTSP(None)
 G = GraphBuilder(pos=positions, dist_matrix=distance_matrix)
-G.add_minimum_spanning_tree()
+G_opt = GraphBuilder(pos=positions, dist_matrix=distance_matrix)
+
+#G.add_minimum_spanning_tree()
 #plt.show()
 
-solve_LKH(dataset_name=dataset_name, instance=positions, instance_name=name, rerun=True)
-print(config.get_dir(const.RES_DIR_BESTRUN, name, '.log'))
+#solve_LKH(dataset_name=dataset_name, instance=positions, instance_name=name, rerun=True)
+opt_file = config.get_dir(const.RES_DIR_BESTRUN, name, '.txt')
+optimal_tour = ReaderTSP.load_optimal(opt_file)[:-2]
+G_opt.add_optimal_edges(optimal_tour)
+plt.show()
+
 input('Hit <ENTER> to end.')
