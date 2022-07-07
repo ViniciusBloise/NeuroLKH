@@ -11,6 +11,7 @@ from tqdm import trange
 import argparse
 import time
 import tempfile
+import sh
 
 _base_dir = ''
 
@@ -107,6 +108,10 @@ def solve_LKH(dataset_name, instance, instance_name, rerun=False, max_trials=100
                    "LKH", para_filename, max_trials=max_trials)
         with open(log_filename, "w") as f:
             check_call(["./LKH", para_filename], stdout=f)
+        bestrun_file = f'result/{dataset_name}/bestrun/{instance_name}.txt'
+        bestrun = sh.tail('-n 1', log_filename)
+        with open(bestrun_file, 'w') as f:
+            f.write(str(bestrun.wait()))
     return read_results(log_filename, max_trials)
 
 
@@ -172,6 +177,7 @@ def solve_NeuroLKH(dataset_name, instance, instance_name, candidate, pi, rerun=F
         write_candidate_pi(dataset_name, instance_name, candidate, pi)
         with open(log_filename, "w") as f:
             check_call(["./LKH", para_filename], stdout=f)
+
     return read_results(log_filename, max_trials)
 
 
