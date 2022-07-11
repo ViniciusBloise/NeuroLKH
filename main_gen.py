@@ -1,3 +1,4 @@
+from ast import Str
 from intf import config, constant as const
 from tqdm import tqdm
 import os
@@ -27,7 +28,7 @@ def generate_bestrun_files(cfg = None):
 
     print('# end #')
 
-def read_candidate(cfg = None):
+def read_candidate(cfg: config.Config  = None):
     # returne a dictionary with set of problems
     print('#### reading candidates')
     print('####')
@@ -37,7 +38,8 @@ def read_candidate(cfg = None):
 
     candidatedir = os.listdir(cfg.get_dir(const.RES_DIR_CANDIDATE))
 
-    problem = {}
+    problem: dict[str, dict[str, list[int]]] = {}
+
     for cand_filename in tqdm(candidatedir):
         problem_name = cand_filename.split('.')[0]
         problem[problem_name] = None
@@ -51,11 +53,11 @@ def read_candidate(cfg = None):
         problem[problem_name] = parts
     return problem
 
-def proc_candidate_file(filetext):
+def proc_candidate_file(filetext: str):
     #candidate files are ranging from 1 -> nodes
     #return a dict of nodes and candidates edge according to a priority
 
-    parts = {}
+    parts: dict[str, list[int]] = {}
     lines = filetext.split('\n')
     n_nodes = int(lines[0])
     for line in lines[1:n_nodes+1]: #tqdm
@@ -77,6 +79,12 @@ def get_edges_from_candidate(candidates, pos=0):
         tuple = (a,b) if(a<b) else (b,a)
         edges.append( tuple)
     return edges
+
+def problem_set(cfg: config.Config = None):
+    print('#### Reading TSP candidate sets')
+    print('####')
+
+    tspdir = cfg.get_dir(const.RES_DIR_TSP)
 
 if __name__ == '__main__':
     #generate_bestrun_files()

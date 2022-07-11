@@ -14,7 +14,7 @@ class Config:
         self.TSP_INST_USED = tspInstUsed
         #self.TSP_INST_USED = config[const.TSP_INST_USED]
 
-    def get_dir(self, dirtype, filename=None, ext='.txt'):
+    def get_dir(self, dirtype, filename=None, ext='.txt') -> str:
         if filename == None:
             return self.TSP_INST_URL + dirtype + f'/'
         else:
