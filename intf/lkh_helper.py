@@ -108,6 +108,8 @@ def solve_LKH(dataset_name, instance, instance_name, rerun=False, max_trials=100
                    "LKH", para_filename, max_trials=max_trials)
         with open(log_filename, "w") as f:
             check_call(["./LKH", para_filename], stdout=f)
+        
+        #Write bestrun file
         bestrun_file = f'result/{dataset_name}/bestrun/{instance_name}.txt'
         bestrun = sh.tail('-n 1', log_filename)
         with open(bestrun_file, 'w') as f:
