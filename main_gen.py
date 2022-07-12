@@ -84,7 +84,32 @@ def problem_set(cfg: config.Config = None):
     print('#### Reading TSP candidate sets')
     print('####')
 
-    tspdir = cfg.get_dir(const.RES_DIR_TSP)
+    tspdir = os.listdir(cfg.get_dir(const.RES_DIR_TSP))
+
+    problem: dict[str, list[tuple(float, float)]] = {}
+    for filename in tqdm(tspdir):
+        problem_name = filename.split('.')[0]
+        full_problemname = cfg.get_dir(const.RES_DIR_TSP, problem_name, '.tsp')
+        points: list[tuple(float, float)] = []
+        #print(full_candfilename)
+        
+        print(full_problemname)
+        with open(full_problemname, 'r') as f:
+            probls = f.readlines()
+            start_idx = [idx for idx, x in enumerate(probls) if 'NODE_COORD_SECTION' in x][0]
+            end_idx = [idx for idx, x in enumerate(probls) if 'EOF' in x][0]
+            print(probls[start_idx])
+            for line in probls[start_idx+1:end_idx]:
+       
+                items = line.strip().split(' ')[1:]
+                point = (float(items[0]), float(items[1]))
+                points.append(point)
+
+            #print(cand)
+        problem[problem_name] = points
+        break
+    return problem
+
 
 if __name__ == '__main__':
     #generate_bestrun_files()
@@ -95,4 +120,5 @@ if __name__ == '__main__':
     #print(edges)
     print(len(candidates))
 
-
+    tspProblemSet = problem_set(cfg=cfg)
+    print(tspProblemSet)
