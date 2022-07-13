@@ -1,6 +1,8 @@
 import os
 import sh
 import numpy as np
+from scipy.sparse.csgraph import minimum_spanning_tree
+from scipy.sparse import csr_matrix
 from typing import Mapping, MutableMapping, Sequence, Iterable
 from ast import Str
 from tqdm import tqdm
@@ -127,20 +129,46 @@ def problem_set(cfg: config.Config = None) -> Iterable[tuple[int, np.array, np.a
         problem = reader.read_instance(full_problemname)
         yield problem
 
+def compute_minimum_spanning_tree(dist_matrix: np.array) -> list[tuple[int,int]]:
+    X = np.triu(dist_matrix,0)
+    Tcsr = minimum_spanning_tree(csr_matrix(X))
+
+    edges = []
+    for edge in np.argwhere(Tcsr>0):
+        a = edge[0]; b = edge[1]
+        
+        edge_tpl = (a,b) if (a < b) else (b,a)
+        edges.append(edge_tpl)
+    return edges
+
+def intersect(list1:list[tuple[int,int]], list2:list[tuple[int,int]]):
+    return list(set(list1) & set(list2))
+
+
 if __name__ == '__main__':
     #generate_bestrun_files()
     cfg = config.Config()
 
     candidates = read_candidate(cfg=cfg)
-    first = candidates[list(candidates.keys())[0]]
+
     #print(first)
 
-    edges = get_edges_from_candidate(first)
     #print(edges)
     
     tspProblemSet = problem_set(cfg=cfg)
+    once = True
     for problem in tqdm(tspProblemSet):
-        n_points, positions, distance_matrix, name, optimal_tour = problem
+        n_points, positions, dist_matrix, name, optimal_tour = problem
+        if once:
+            mst = compute_minimum_spanning_tree(dist_matrix)
+
+            first = candidates[name]
+            edges = get_edges_from_candidate(first)
+            print(len(edges))
+            print(len(mst))
+            intx = intersect(edges, mst)
+            print(len(intx))
+            once = False
         #print(n_points, name)
     
     #oneProblem = tspProblemSet
