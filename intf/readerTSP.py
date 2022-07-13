@@ -19,7 +19,7 @@ class ReaderTSP:
         for file in self.instances:
             yield self.read_instance(join(f'{self.path}tsp/', file))
 
-    def read_instance(self, filename):
+    def read_instance(self, filename) -> tuple[int, np.array, np.array, str, str]:
         # read raw data
         with open(filename) as file_object:
             data = file_object.read()

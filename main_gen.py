@@ -1,8 +1,12 @@
-from ast import Str
-from intf import config, constant as const
-from tqdm import tqdm
 import os
 import sh
+import numpy as np
+from typing import Mapping, MutableMapping, Sequence, Iterable
+from ast import Str
+from tqdm import tqdm
+from intf import config, constant as const
+from intf.readerTSP import ReaderTSP
+
 
 
 def generate_bestrun_files(cfg = None):
@@ -28,7 +32,7 @@ def generate_bestrun_files(cfg = None):
 
     print('# end #')
 
-def read_candidate(cfg: config.Config  = None):
+def read_candidate(cfg: config.Config  = None) ->  dict[str, dict[str, list[int]]]:
     # returne a dictionary with set of problems
     print('#### reading candidates')
     print('####')
@@ -80,7 +84,7 @@ def get_edges_from_candidate(candidates, pos=0):
         edges.append( tuple)
     return edges
 
-def problem_set(cfg: config.Config = None):
+def problem_set2(cfg: config.Config = None):
     print('#### Reading TSP candidate sets')
     print('####')
 
@@ -110,15 +114,37 @@ def problem_set(cfg: config.Config = None):
         break
     return problem
 
+def problem_set(cfg: config.Config = None) -> Iterable[tuple[int, np.array, np.array, str, str]]:
+    print('#### Reading TSP candidate sets through ReaderTSP')
+    print('####')
+
+    reader = ReaderTSP(cfg)
+    tspdir = os.listdir(cfg.get_dir(const.RES_DIR_TSP))
+
+    for filename in tspdir: #tqdm(tspdir):
+        problem_name = filename.split('.')[0]
+        full_problemname = cfg.get_dir(const.RES_DIR_TSP, problem_name, '.tsp')
+        problem = reader.read_instance(full_problemname)
+        yield problem
 
 if __name__ == '__main__':
     #generate_bestrun_files()
     cfg = config.Config()
 
     candidates = read_candidate(cfg=cfg)
-    #edges = get_edges_from_candidate(candidates)
-    #print(edges)
-    print(len(candidates))
+    first = candidates[list(candidates.keys())[0]]
+    #print(first)
 
+    edges = get_edges_from_candidate(first)
+    #print(edges)
+    
     tspProblemSet = problem_set(cfg=cfg)
-    print(tspProblemSet)
+    for problem in tqdm(tspProblemSet):
+        n_points, positions, distance_matrix, name, optimal_tour = problem
+        #print(n_points, name)
+    
+    #oneProblem = tspProblemSet
+    #oneProblem
+    #print(name, n_points)
+    #keys = list(tspProblemSet.keys())
+    #print(len(keys))s
