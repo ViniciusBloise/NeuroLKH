@@ -221,6 +221,10 @@ if __name__ == '__main__':
         rows.append(row)
         #print(n_points, name)
     print(row)
+    df = pd.DataFrame(rows, columns=['name', 'n#points', 'n#candidates', 'n#mst', 'n#best', 'nothing','n#intx_cand_mst', '#intx_cand_mst_best'])
+    
+    stop = input()
+    
     #oneProblem = tspProblemSet
     # oneProblem
     #print(name, n_points)
