@@ -238,9 +238,18 @@ if __name__ == '__main__':
         rows.append(row)
         #print(n_points, name)
     print(row)
+
+    print('### creating stats file')
     df = pd.DataFrame(rows, columns=['name', 'n#points', 'n#candidates', 'n#mst', 'n#best', 'nothing','n#intx_cand_mst', 'n#intx_cand_mst_best'])
-    
-    stop = input()
+
+    dirstats = cfg.get_dir(const.RES_DIR_STATS)
+    if not os.path.exists(dirstats):
+        os.mkdir(dirstats)
+
+    statsfile = dirstats + f'stats{cfg.instance}.txt'
+    df.to_csv(statsfile)
+
+    print('### end generation')
     
     #oneProblem = tspProblemSet
     # oneProblem
