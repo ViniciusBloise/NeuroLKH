@@ -205,7 +205,7 @@ if __name__ == '__main__':
     cfg = config.Config()
 
     if args.dataset:
-        cfg.TSP_INST_URL = 'result/' + args.dataset
+        cfg.TSP_INST_URL = f'result/{args.dataset}/'
 
     if args.bestrun:
         generate_bestrun_files(cfg=cfg)
