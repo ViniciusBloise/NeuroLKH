@@ -11,6 +11,7 @@ class Config:
         self.config = config
 
         self.TSP_INST_URL = config[const.TSP_INST_URL]
+        self.instance = self.TSP_INST_URL.split('/')[-1]
         self.TSP_INST_USED = tspInstUsed
         #self.TSP_INST_USED = config[const.TSP_INST_USED]
 

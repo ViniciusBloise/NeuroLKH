@@ -1,11 +1,13 @@
 import os
 import sh
+import argparse
 import numpy as np
 import pandas as pd
+
 from scipy.sparse.csgraph import minimum_spanning_tree
 from scipy.sparse import csr_matrix
 from typing import Mapping, MutableMapping, Sequence, Iterable
-from ast import Str
+
 from tqdm import tqdm
 from intf import config, constant as const
 from intf.readerTSP import ReaderTSP
@@ -18,13 +20,18 @@ def generate_bestrun_files(cfg=None):
     if cfg is None:
         cfg = config.Config()
 
-    instance = '100'
+    instance = cfg.instance
     dirname = cfg.get_dir(const.RES_DIR_BESTRUN)
-    tspdir = os.listdir(cfg.get_dir(const.RES_DIR_LKH_LOG))
+    if not os.path.exists(dirname):
+        os.mkdir(dirname)
+
+    lkh_log = cfg.get_dir(const.RES_DIR_LKH_LOG)
+    if not os.path.exists(lkh_log):
+        os.mkdir(lkh_log)
+    tspdir = os.listdir(lkh_log)
 
     for log_filename in tqdm(tspdir):
-        full_logfilename = cfg.get_dir(
-            const.RES_DIR_LKH_LOG, log_filename, '.log')
+        full_logfilename = cfg.get_dir(const.RES_DIR_LKH_LOG, log_filename, '.log')
 
         bestrun = sh.tail('-n 1', full_logfilename)
         bestrun_file = cfg.get_dir(const.RES_DIR_BESTRUN, log_filename, '.txt')
@@ -190,8 +197,18 @@ def intersect(list1: list[tuple[int, int]], list2: list[tuple[int, int]]):
 
 
 if __name__ == '__main__':
-    # generate_bestrun_files()
+    parser = argparse.ArgumentParser(description='Generate data for best run, candidate list and stats')
+    parser.add_argument('--dataset', default='100', help='dataset path with all problem sets')
+    parser.add_argument('-bestrun', action='store_const', const=True, help='flag to generate bestrun files')
+
+    args = parser.parse_args()
     cfg = config.Config()
+
+    if args.dataset:
+        cfg.TSP_INST_URL = 'result/' + args.dataset
+
+    if args.bestrun:
+        generate_bestrun_files(cfg=cfg)
 
     candidates = read_candidate(cfg=cfg)
 
@@ -221,7 +238,7 @@ if __name__ == '__main__':
         rows.append(row)
         #print(n_points, name)
     print(row)
-    df = pd.DataFrame(rows, columns=['name', 'n#points', 'n#candidates', 'n#mst', 'n#best', 'nothing','n#intx_cand_mst', '#intx_cand_mst_best'])
+    df = pd.DataFrame(rows, columns=['name', 'n#points', 'n#candidates', 'n#mst', 'n#best', 'nothing','n#intx_cand_mst', 'n#intx_cand_mst_best'])
     
     stop = input()
     
