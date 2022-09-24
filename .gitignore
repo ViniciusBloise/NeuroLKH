@@ -13,3 +13,4 @@ test/*.pkl
 train/*.pkl
 val/*.pkl
 .idea/
+tmp/

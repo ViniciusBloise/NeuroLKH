@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-dataset_name = '1000'
+dataset_name = '100'
 config = Config(tspInstUsed=os.listdir(f'./result/{dataset_name}/tsp'))
 reader = ReaderTSP(config)
 
