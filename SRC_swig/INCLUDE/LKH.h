@@ -472,7 +472,7 @@ Node **BuildKDTree(int Cutoff);
 void ChooseInitialTour(void);
 void Connect(Node * N1, int Max, int Sparse);
 void CandidateReport(void);
-void CreateCandidateSet(void);
+void CreateCandidateSet(double* invec);
 void CreateDelaunayCandidateSet(void);
 void CreateNearestNeighborCandidateSet(int K);
 void CreateNNCandidateSet(int K);
