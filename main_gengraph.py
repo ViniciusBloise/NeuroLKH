@@ -1,4 +1,5 @@
 import os
+from tokenize import Name
 import sh
 import argparse
 import numpy as np
@@ -14,7 +15,9 @@ from intf.readerTSP import ReaderTSP
 
 import matplotlib.pyplot as plt
 
-def problem_set(cfg: config.Config = None) -> Iterable[tuple[int, np.array, np.array, str, str, np.array]]:
+MAX_NUMBER = 1000000
+
+def problem_set(cfg: config.Config = None) -> Iterable[tuple[int, np.array, np.array, str, np.array, np.array]]:
     print('#### Reading TSP candidate sets through ReaderTSP')
     print('####')
 
@@ -31,23 +34,35 @@ def problem_set(cfg: config.Config = None) -> Iterable[tuple[int, np.array, np.a
         full_pi = cfg.get_dir(const.RES_DIR_PI, problem_name)
         pis = ReaderTSP.read_pi(filename=full_pi)
 
-        #optimal_tour = reader.get_optimal_solution(name, positions)
-        print('### Solution', name, n_points)
+        optimal_tour = reader.get_from_LKH_run(name)
+        print('### Solution', name, n_points, optimal_tour)
 
         yield n_points, positions, dist_matrix, name, optimal_tour, pis
 
 def normalize_data(data:np.array) -> np.array:
     return data / np.abs(data).max()
 
-def plot_problem(pos:np.array, pis:np.array, n_buckets = 10):
+def plot_optimal_tour(pos:np.array, optimal:np.array):
+    x = pos[:,0].flatten()
+    y = pos[:,1].flatten()
+
+    norm_pos = pos/MAX_NUMBER
+    for i in range(len(pos)):
+        plt.plot(norm_pos[optimal[i:i+2], 0], norm_pos[optimal[i:i+2], 1], 'green', linewidth=1)
+
+    return
+
+def plot_problem(pos:np.array, pis:np.array, name='', n_buckets = 10):
+    norm_pos = pos / MAX_NUMBER
     normal_size = normalize_data(pis)
     size = np.power(1.7,  abs(normal_size) * n_buckets).tolist()
-    color = np.array([ 'darkblue' for i in range(normal_size.size)])
+    color = np.array([ 'blue' for i in range(normal_size.size)])
     color[np.argwhere(normal_size < 0)] = 'red'
-    print(normal_size, color)
+    #print(normal_size, color)
 
-    plt.scatter(pos[:, 0], pos[:, 1], s=size, color=color, marker='o')
-    plt.show()
+    plt.scatter(norm_pos[:, 0], norm_pos[:, 1], s=size, color=color, marker='o')
+    plt.title(f'Nodes: {len(size)}, Sample: {name}')
+
     return
 
 if __name__ == '__main__':
@@ -66,7 +81,10 @@ if __name__ == '__main__':
     for problem in tspProblemSet: #tdqm
         n_points, positions, dist_matrix, name, optimal_tour, pis = problem
         #print(name, pis)
-        plot_problem(positions, pis)
+        print('### going to plot', name)
+        plot_problem(positions, pis, name=name)
+        plot_optimal_tour(pos=positions, optimal=optimal_tour)
+        plt.show()
         break
 
     #print(n_points, positions, dist_matrix, name, optimal_tour)

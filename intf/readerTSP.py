@@ -1,7 +1,9 @@
 from . import config as cfg
 import numpy as np
-from os.path import join, exists
 
+from os import SEEK_END
+from os.path import join, exists
+import sh
 
 class ReaderTSP:
 
@@ -75,7 +77,7 @@ class ReaderTSP:
         if exists(filename):
             optimal_tour = ReaderTSP.load_optimal_solution(filename)
         else:
-            optimal_tour = ReaderTSP.compute_optimal_solution(positions)
+            optimal_tour = self.get_from_LKH_run(name)
         return optimal_tour
 
     @staticmethod
@@ -124,3 +126,13 @@ class ReaderTSP:
         with open(filename) as f:
             data = f.read().split(' ')
         return data
+
+    def get_from_LKH_run(self, name:str):
+        filename = f'{self.path}LKH_log/{name}.log'
+        #tail = sh.tail("-f", filename, _iter=True)
+        with open(filename, 'r') as f:
+            tail = f.readlines()[-1]
+    
+        opt = [int(i)-1 for i in tail.strip().split(' ')]
+        #opt = tail
+        return opt
