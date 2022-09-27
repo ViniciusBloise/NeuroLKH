@@ -17,6 +17,9 @@ class ReaderTSP:
 
     def instances_generator(self):
         for file in self.instances:
+            pi = ReaderTSP.read_pi(join(f'{self.path}feat/', file))
+            print(pi)
+            break
             yield self.read_instance(join(f'{self.path}tsp/', file))
 
     def read_instance(self, filename) -> tuple[int, np.array, np.array, str, str]:
@@ -44,6 +47,28 @@ class ReaderTSP:
         optimal_tour = None
 
         return n_points, positions, distance_matrix, name, optimal_tour
+
+    @staticmethod
+    def read_pi(filename:str) -> np.array:
+        with open(filename) as f:
+            data = f.read()
+        lines = data.splitlines()
+        pis = []
+
+        for line in lines[1: int(lines[0])+1]:
+            pis.append( int(int(line.split(' ')[-1].strip())))
+        
+        return np.array(pis)
+
+    def read_feature(self, filename:str) -> np.array:
+        with open(filename) as f:
+            data = f.read()
+        lines = data.splitlines()
+        feats = []
+        for line in lines[0: lines[0]]:
+            feats.add( int(line.split(' ')[-1]))
+        return np.array(feats)
+
 
     def get_optimal_solution(self, name, positions):
         filename = f'{self.path}optimal/{name}.npy'
