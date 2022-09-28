@@ -94,7 +94,9 @@ def write_candidate_pi(dataset_name, instance_name, candidate, pi, beta):
     with open(f"result/{dataset_name}/beta/{instance_name}.txt", "w") as f:
         f.write(str(n_node) + "\n")
         for j in range(n_node):
-            line = str(j + 1) + " " + str(int(beta[j]))
+            line = str(j + 1) + " " 
+            for k in range(20):
+                line += " " + str(int(beta[j,k]))
             f.write(line + "\n")
         f.write("-1\nEOF\n")
 
@@ -254,7 +256,7 @@ def eval_dataset(dataset_filename, method, args, rerun=True, max_trials=1000):
         n_node = len(dataset[0])
         candidate = candidate_Pi[:, :n_node * 5].reshape(-1, n_node, 5)
         pi = candidate_Pi[:, n_node * 5:].reshape(-1, n_node)
-        
+
         os.makedirs(f"result/{dataset_name}/candidate", exist_ok=True)
         os.makedirs(f"result/{dataset_name}/pi", exist_ok=True)
         os.makedirs(f"result/{dataset_name}/beta", exist_ok=True)
