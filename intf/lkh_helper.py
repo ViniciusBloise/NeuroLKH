@@ -97,7 +97,7 @@ def write_candidate_pi(dataset_name, instance_name, candidate, pi, beta):
         for j in range(n_node):
             line = str(j + 1) + " " 
             # line = str(j + 1) + " " + str(int(pi[j]))
-            for k in range(20):
+            for k in range(5):
                 line += " " + str(int(beta[j,k]))
             f.write(line + "\n")
         f.write("-1\nEOF\n")
