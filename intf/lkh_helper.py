@@ -1,17 +1,19 @@
 import os
 from subprocess import check_call
 from multiprocessing import Pool
-import tqdm
-import numpy as np
-import pickle
-from net.sgcn_model import SparseGCNModel
-import torch
-from torch.autograd import Variable
-from tqdm import trange
-import argparse
 import time
 import tempfile
 import sh
+import tqdm
+from tqdm import trange
+
+import numpy as np
+import pickle
+import torch
+from torch.autograd import Variable
+
+from net.sgcn_model import SparseGCNModel
+
 
 _base_dir = ''
 
@@ -70,9 +72,9 @@ def read_feat(feat_filename):
     return edge_index, edge_feat, inverse_edge_index, runtime
 
 
-def write_candidate_pi(dataset_name, instance_name, candidate, pi):
+def write_candidate_pi(dataset_name, instance_name, candidate, pi, beta):
     n_node = candidate.shape[0]
-    with open("result/" + dataset_name + "/candidate/" + instance_name + ".txt", "w") as f:
+    with open(f"result/{dataset_name}/candidate/{instance_name}.txt", "w") as f:
         f.write(str(n_node) + "\n")
         for j in range(n_node):
             line = str(j + 1) + " 0 5"
@@ -81,13 +83,20 @@ def write_candidate_pi(dataset_name, instance_name, candidate, pi):
                     str(int(candidate[j, _]) + 1) + " " + str(_ * 100)
             f.write(line + "\n")
         f.write("-1\nEOF\n")
-    with open("result/" + dataset_name + "/pi/" + instance_name + ".txt", "w") as f:
+
+    with open(f"result/{dataset_name}/pi/{instance_name}.txt", "w") as f:
         f.write(str(n_node) + "\n")
         for j in range(n_node):
             line = str(j + 1) + " " + str(int(pi[j]))
             f.write(line + "\n")
         f.write("-1\nEOF\n")
 
+    with open(f"result/{dataset_name}/beta/{instance_name}.txt", "w") as f:
+        f.write(str(n_node) + "\n")
+        for j in range(n_node):
+            line = str(j + 1) + " " + str(int(beta[j]))
+            f.write(line + "\n")
+        f.write("-1\nEOF\n")
 
 def method_wrapper(args):
     if args[0] == "LKH":
@@ -134,26 +143,28 @@ def infer_SGN(net, dataset_node_feat, dataset_edge_index, dataset_edge_feat, dat
               batch_size=100):
     candidate = []
     pi = []
+    beta = []
     for i in trange(dataset_edge_index.shape[0] // batch_size):
         node_feat = dataset_node_feat[i * batch_size:(i + 1) * batch_size]
         edge_index = dataset_edge_index[i * batch_size:(i + 1) * batch_size]
         edge_feat = dataset_edge_feat[i * batch_size:(i + 1) * batch_size]
-        inverse_edge_index = dataset_inverse_edge_index[i *
-                                                        batch_size:(i + 1) * batch_size]
-        node_feat = Variable(torch.FloatTensor(node_feat).type(
-            torch.cuda.FloatTensor), requires_grad=False)
+        inverse_edge_index = dataset_inverse_edge_index[i * batch_size:(i + 1) * batch_size]
+
+        node_feat = Variable(torch.FloatTensor(node_feat).type(torch.cuda.FloatTensor), requires_grad=False)
         edge_feat = Variable(torch.FloatTensor(edge_feat).type(torch.cuda.FloatTensor), requires_grad=False).view(
             batch_size, -1, 1)
         edge_index = Variable(torch.FloatTensor(edge_index).type(torch.cuda.FloatTensor), requires_grad=False).view(
             batch_size, -1)
-        inverse_edge_index = Variable(torch.FloatTensor(inverse_edge_index).type(torch.cuda.FloatTensor),
-                                      requires_grad=False).view(batch_size, -1)
+        inverse_edge_index = Variable(torch.FloatTensor(inverse_edge_index).type(torch.cuda.FloatTensor), requires_grad=False).view(
+            batch_size, -1)
         y_edges, _, y_nodes = net.forward(
             node_feat, edge_feat, edge_index, inverse_edge_index, None, None, 20)
         pi.append(y_nodes.cpu().numpy())
         y_edges = y_edges.detach().cpu().numpy()
         y_edges = y_edges[:, :, 1].reshape(
             batch_size, dataset_node_feat.shape[1], 20)
+        beta.append(y_edges)
+
         y_edges = np.argsort(-y_edges, -1)
         edge_index = edge_index.cpu().numpy().reshape(-1, y_edges.shape[1], 20)
         candidate_index = edge_index[
@@ -161,12 +172,14 @@ def infer_SGN(net, dataset_node_feat, dataset_edge_index, dataset_edge_feat, dat
         candidate.append(candidate_index[:, :, :5])
     candidate = np.concatenate(candidate, 0)
     pi = np.concatenate(pi, 0)
+    beta = np.concatenate(beta, 0)
+    
     candidate_Pi = np.concatenate(
         [candidate.reshape(dataset_edge_index.shape[0], -1), 1000000 * pi.reshape(dataset_edge_index.shape[0], -1)], -1)
-    return candidate_Pi
+    return candidate_Pi, beta.reshape(dataset_edge_index.shape[0], -1)
 
 
-def solve_NeuroLKH(dataset_name, instance, instance_name, candidate, pi, rerun=False, max_trials=1000):
+def solve_NeuroLKH(dataset_name, instance, instance_name, candidate, pi, beta, rerun=False, max_trials=1000):
     para_filename = f"result/{dataset_name}/NeuroLKH_para/{instance_name}.para"
     log_filename = f"result/{dataset_name}/NeuroLKH_log/{instance_name}.log"
     log_run_filename = f"result/{dataset_name}/lhkhelper_log/{instance_name}.log"
@@ -175,7 +188,7 @@ def solve_NeuroLKH(dataset_name, instance, instance_name, candidate, pi, rerun=F
         # write_instance(instance, instance_name, instance_filename)
         write_para(dataset_name, instance_name, instance_filename,
                    "NeuroLKH", para_filename, max_trials=max_trials)
-        write_candidate_pi(dataset_name, instance_name, candidate, pi)
+        write_candidate_pi(dataset_name, instance_name, candidate, pi, beta)
         with open(log_filename, "w") as f:
             check_call(["./LKH", para_filename], stdout=f)
         #with open(log_run_filename) as f:
@@ -206,16 +219,16 @@ def read_results(log_filename, max_trials):
 
 def eval_dataset(dataset_filename, method, args, rerun=True, max_trials=1000):
     dataset_name = dataset_filename.strip(".pkl").split("/")[-1]
-    os.makedirs("result/" + dataset_name + "/" +
-                method + "_para", exist_ok=True)
-    os.makedirs("result/" + dataset_name + "/" +
-                method + "_log", exist_ok=True)
-    os.makedirs("result/" + dataset_name + "/tsp", exist_ok=True)
+    os.makedirs(f"result/{dataset_name}/{method}_para", exist_ok=True)
+    os.makedirs(f"result/{dataset_name}/{method}_log", exist_ok=True)
+    os.makedirs(f"result/{dataset_name}/tsp", exist_ok=True)
+
     with open(dataset_filename, "rb") as f:
         dataset = pickle.load(f)[:args.n_samples]
+
     if method == "NeuroLKH":
-        os.makedirs("result/" + dataset_name + "/featgen_para", exist_ok=True)
-        os.makedirs("result/" + dataset_name + "/feat", exist_ok=True)
+        os.makedirs(f"result/{dataset_name}/featgen_para", exist_ok=True)
+        os.makedirs(f"result/{dataset_name}/feat", exist_ok=True)
         with Pool(os.cpu_count()) as pool:
             feats = list(tqdm.tqdm(
                 pool.imap(method_wrapper, [
@@ -233,7 +246,7 @@ def eval_dataset(dataset_filename, method, args, rerun=True, max_trials=1000):
         net.load_state_dict(saved["model"])
         sgn_start_time = time.time()
         with torch.no_grad():
-            candidate_Pi = infer_SGN(net, np.array(dataset), edge_index, edge_feat, inverse_edge_index,
+            candidate_Pi, beta = infer_SGN(net, np.array(dataset), edge_index, edge_feat, inverse_edge_index,
                                      batch_size=args.batch_size)
         sgn_runtime = time.time() - sgn_start_time
         # with open("candidate_Pi/" + dataset_name + ".pkl", "rb") as f:
@@ -241,11 +254,14 @@ def eval_dataset(dataset_filename, method, args, rerun=True, max_trials=1000):
         n_node = len(dataset[0])
         candidate = candidate_Pi[:, :n_node * 5].reshape(-1, n_node, 5)
         pi = candidate_Pi[:, n_node * 5:].reshape(-1, n_node)
-        os.makedirs("result/" + dataset_name + "/candidate", exist_ok=True)
-        os.makedirs("result/" + dataset_name + "/pi", exist_ok=True)
+        
+        os.makedirs(f"result/{dataset_name}/candidate", exist_ok=True)
+        os.makedirs(f"result/{dataset_name}/pi", exist_ok=True)
+        os.makedirs(f"result/{dataset_name}/beta", exist_ok=True)
+
         with Pool(os.cpu_count()) as pool:
             results = list(tqdm.tqdm(pool.imap(method_wrapper, [
-                ("NeuroLKH", dataset_name, dataset[i], str(i), candidate[i], pi[i], rerun, max_trials) for i in
+                ("NeuroLKH", dataset_name, dataset[i], str(i), candidate[i], pi[i], beta[i], rerun, max_trials) for i in
                 range(len(dataset))]), total=len(dataset)))
     else:
         assert method == "LKH"
