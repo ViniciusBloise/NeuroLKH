@@ -173,6 +173,7 @@ def infer_SGN(net, dataset_node_feat, dataset_edge_index, dataset_edge_feat, dat
             batch_size, dataset_node_feat.shape[1], 20) #n_batch x n_nodes x n_neighbours(20)
         print('y_edges(2): ', y_edges.shape)
         one_beta = np.copy(y_edges)
+        print('one_beta:', one_beta)
 
         y_edges = np.argsort(-y_edges, -1)
         edge_index = edge_index.cpu().numpy().reshape(-1, y_edges.shape[1], 20)
@@ -181,7 +182,7 @@ def infer_SGN(net, dataset_node_feat, dataset_edge_index, dataset_edge_feat, dat
         print('candidate_index:', candidate_index.shape)
         candidate.append(candidate_index[:, :, :5])
         beta_index = one_beta[ np.arange(batch_size).reshape(-1, 1, 1), np.arange(y_edges.shape[1]).reshape(1, -1, 1), y_edges]
-        print('beta_index: ', beta_index.shape)
+        print('beta_index: ', beta_index.shape, beta_index)
         beta.append(beta_index[:, :, :5])
 
     candidate = np.concatenate(candidate, 0)
