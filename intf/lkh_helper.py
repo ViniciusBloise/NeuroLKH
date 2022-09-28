@@ -181,6 +181,7 @@ def infer_SGN(net, dataset_node_feat, dataset_edge_index, dataset_edge_feat, dat
         candidate.append(candidate_index[:, :, :5])
         beta_index = one_beta[ np.arange(batch_size).reshape(-1, 1, 1), np.arange(y_edges.shape[1]).reshape(1, -1, 1), y_edges]
         print('beta_index: ', beta_index.shape)
+        beta.append(beta_index)
 
     candidate = np.concatenate(candidate, 0)
     pi = np.concatenate(pi, 0)
