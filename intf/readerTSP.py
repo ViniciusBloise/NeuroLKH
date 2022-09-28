@@ -136,3 +136,16 @@ class ReaderTSP:
         opt = [int(i)-1 for i in tail.strip().split(' ')]
         #opt = tail
         return opt
+
+    def load_candidate(self, name:str):
+        filename = f'{self.path}candidate/{name}.txt'
+        with open(filename, 'r') as f:
+            lines = f.readlines()
+        
+        cands = []
+        for line in lines[1:-2]:
+            items = np.array(line.strip().split(' '))
+            cand = [int(items[3 + i * 2])-1 for i in range(5)]
+            cands.append(cand)
+
+        return np.array(cands)
