@@ -66,9 +66,9 @@ def read_feat(feat_filename:str) -> tuple[np.array, np.array, np.array, float]:
                 edge_index.append(int(line[i * 3]))
                 edge_feat.append(int(line[i * 3 + 1]) / _DATASET_MAX_SCALE)
                 inverse_edge_index.append(int(line[i * 3 + 2]))
-    edge_index = np.array(edge_index).reshape(1, -1, 20)
-    edge_feat = np.array(edge_feat).reshape(1, -1, 20)
-    inverse_edge_index = np.array(inverse_edge_index).reshape(1, -1, 20)
+    edge_index = np.array(edge_index).reshape(1, -1, 20)    # 1 x n_nodes x 20
+    edge_feat = np.array(edge_feat).reshape(1, -1, 20)      # 1 x n_nodes x 20
+    inverse_edge_index = np.array(inverse_edge_index).reshape(1, -1, 20) # 1 x n_nodes x 20
     runtime = float(lines[-1].strip())
     return edge_index, edge_feat, inverse_edge_index, runtime
 
@@ -169,19 +169,20 @@ def infer_SGN(net, dataset_node_feat, dataset_edge_index, dataset_edge_feat, dat
         pi.append(y_nodes.cpu().numpy())
         y_edges = y_edges.detach().cpu().numpy() #n_batch x (n_nodes x n_neighbours) x 2
 
-        y_edges = y_edges[:, :, 1].reshape(
-            batch_size, dataset_node_feat.shape[1], 20) #n_batch x n_nodes x n_neighbours(20)
+        #retrieves log(beta)
+        y_edges = y_edges[:, :, 1].reshape(batch_size, dataset_node_feat.shape[1], 20) #n_batch x n_nodes x n_neighbours(20)
         print('y_edges(2): ', y_edges.shape)
         one_beta = np.copy(y_edges)
         print('one_beta:', one_beta)
 
-        y_edges = np.argsort(-y_edges, -1)
-        edge_index = edge_index.cpu().numpy().reshape(-1, y_edges.shape[1], 20)
+        y_edges = np.argsort(-y_edges, -1) #here y_edges have log(beta), order descending, y_edges are mostly negative, < 1
+        edge_index = edge_index.cpu().numpy().reshape(-1, y_edges.shape[1], 20) #n_batch x n_nodes x n_neighbours(20)
+        
         candidate_index = edge_index[
             np.arange(batch_size).reshape(-1, 1, 1), np.arange(y_edges.shape[1]).reshape(1, -1, 1), y_edges]
         print('candidate_index:', candidate_index.shape)
         candidate.append(candidate_index[:, :, :5])
-        beta_index = one_beta[ np.arange(batch_size).reshape(-1, 1, 1), np.arange(y_edges.shape[1]).reshape(1, -1, 1), y_edges]
+        beta_index = y_edges[ np.arange(batch_size).reshape(-1, 1, 1), np.arange(y_edges.shape[1]).reshape(1, -1, 1), y_edges]
         print('beta_index: ', beta_index.shape, beta_index)
         beta.append(beta_index[:, :, :5])
 
@@ -251,10 +252,12 @@ def eval_dataset(dataset_filename, method, args, rerun=True, max_trials=1000):
                 total=len(dataset)))
         feats = list(zip(*feats))
         edge_index, edge_feat, inverse_edge_index, feat_runtime = feats
+
         feat_runtime = np.sum(feat_runtime)
-        edge_index = np.concatenate(edge_index)
-        edge_feat = np.concatenate(edge_feat)
-        inverse_edge_index = np.concatenate(inverse_edge_index)
+        edge_index = np.concatenate(edge_index) # n_samples x n_nodes x n_neighbours
+        edge_feat = np.concatenate(edge_feat)   # n_samples x n_nodes x n_neighbours
+        inverse_edge_index = np.concatenate(inverse_edge_index) # n_samples x n_nodes x n_neighbours
+
         net = SparseGCNModel()
         net.cuda()
         saved = torch.load(args.model_path)
