@@ -268,6 +268,7 @@ def eval_dataset(dataset_filename, method, args, rerun=True, max_trials=1000):
         n_node = len(dataset[0])
         candidate = candidate_Pi[:, :n_node * 5].reshape(-1, n_node, 5)
         pi = candidate_Pi[:, n_node * 5:].reshape(-1, n_node)
+        beta = beta.reshape(-1, n_node, 20)
 
         os.makedirs(f"result/{dataset_name}/candidate", exist_ok=True)
         os.makedirs(f"result/{dataset_name}/pi", exist_ok=True)
