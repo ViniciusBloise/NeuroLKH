@@ -16,6 +16,7 @@ from net.sgcn_model import SparseGCNModel
 
 
 _base_dir = ''
+_DATASET_MAX_SCALE = 1000000
 
 
 def write_instance(instance, instance_name, instance_filename):
@@ -26,7 +27,7 @@ def write_instance(instance, instance_name, instance_filename):
         f.write("DIMENSION : " + str(len(instance)) + "\n")
         f.write("EDGE_WEIGHT_TYPE : EUC_2D\n")
         f.write("NODE_COORD_SECTION\n")
-        s = 1000000
+        s = _DATASET_MAX_SCALE
         for i in range(len(instance)):
             f.write(" " + str(i + 1) + " " + str(instance[i][0] * s)[
                     :10] + " " + str(instance[i][1] * s)[:10] + "\n")
@@ -52,8 +53,8 @@ def write_para(dataset_name, instance_name, instance_filename, method, para_file
         else:
             assert method == "LKH"
 
-
-def read_feat(feat_filename):
+# edge: 1 x n_nodes x 20
+def read_feat(feat_filename:str) -> tuple[np.array, np.array, np.array, float]:
     edge_index = []
     edge_feat = []
     inverse_edge_index = []
@@ -63,7 +64,7 @@ def read_feat(feat_filename):
             line = line.strip().split()
             for i in range(20):
                 edge_index.append(int(line[i * 3]))
-                edge_feat.append(int(line[i * 3 + 1]) / 1000000)
+                edge_feat.append(int(line[i * 3 + 1]) / _DATASET_MAX_SCALE)
                 inverse_edge_index.append(int(line[i * 3 + 2]))
     edge_index = np.array(edge_index).reshape(1, -1, 20)
     edge_feat = np.array(edge_feat).reshape(1, -1, 20)
@@ -90,13 +91,14 @@ def write_candidate_pi(dataset_name, instance_name, candidate, pi, beta):
             line = str(j + 1) + " " + str(int(pi[j]))
             f.write(line + "\n")
         f.write("-1\nEOF\n")
-
+    
     with open(f"result/{dataset_name}/beta/{instance_name}.txt", "w") as f:
         f.write(str(n_node) + "\n")
         for j in range(n_node):
-            line = str(j + 1) + " " 
-            for k in range(20):
-                line += " " + str(int(beta[j,k]))
+            # line = str(j + 1) + " " 
+            # for k in range(20):
+            #     line += " " + str(int(beta[j,k]))
+            line = str(j + 1) + " " + str(int(pi[j]))
             f.write(line + "\n")
         f.write("-1\nEOF\n")
 
@@ -128,11 +130,11 @@ def solve_LKH(dataset_name, instance, instance_name, rerun=False, max_trials=100
     return read_results(log_filename, max_trials)
 
 
-def generate_feat(dataset_name, instance, instance_name):
-    para_filename = "result/" + dataset_name + \
-        "/featgen_para/" + instance_name + ".para"
-    instance_filename = "result/" + dataset_name + "/tsp/" + instance_name + ".tsp"
-    feat_filename = "result/" + dataset_name + "/feat/" + instance_name + ".txt"
+def generate_feat(dataset_name, instance, instance_name)-> tuple[np.array, np.array, np.array, float]:
+    para_filename = f"result/{dataset_name}/featgen_para/{instance_name}.para"
+    instance_filename = f"result/{dataset_name}/tsp/{instance_name}.tsp"
+    feat_filename = f"result/{dataset_name}/feat/{instance_name}.txt"
+
     write_instance(instance, instance_name, instance_filename)
     write_para(dataset_name, instance_name, instance_filename,
                "FeatGenerate", para_filename)
@@ -140,7 +142,10 @@ def generate_feat(dataset_name, instance, instance_name):
         check_call(["./LKH", para_filename], stdout=f)
     return read_feat(feat_filename)
 
-
+# dataset_node_feat: n_samples x n_nodes x 2
+# dataset_edge_index: n_samples x n_nodes x n_neighbours
+# dataset_edge_feat: n_samples x n_nodes x n_neighbours
+# inverse_edge_index: n_samples x n_nodes x n_neighbours
 def infer_SGN(net, dataset_node_feat, dataset_edge_index, dataset_edge_feat, dataset_inverse_edge_index,
               batch_size=100):
     candidate = []
@@ -163,6 +168,8 @@ def infer_SGN(net, dataset_node_feat, dataset_edge_index, dataset_edge_feat, dat
             node_feat, edge_feat, edge_index, inverse_edge_index, None, None, 20)
         pi.append(y_nodes.cpu().numpy())
         y_edges = y_edges.detach().cpu().numpy()
+
+        print('y_edges: ', y_edges.shape)
         y_edges = y_edges[:, :, 1].reshape(
             batch_size, dataset_node_feat.shape[1], 20)
         beta.append(y_edges)
@@ -177,7 +184,7 @@ def infer_SGN(net, dataset_node_feat, dataset_edge_index, dataset_edge_feat, dat
     beta = np.concatenate(beta, 0)
     
     candidate_Pi = np.concatenate(
-        [candidate.reshape(dataset_edge_index.shape[0], -1), 1000000 * pi.reshape(dataset_edge_index.shape[0], -1)], -1)
+        [candidate.reshape(dataset_edge_index.shape[0], -1), _DATASET_MAX_SCALE * pi.reshape(dataset_edge_index.shape[0], -1)], -1)
     return candidate_Pi, beta.reshape(dataset_edge_index.shape[0], -1)
 
 
