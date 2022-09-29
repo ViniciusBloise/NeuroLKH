@@ -6,6 +6,7 @@ list_nodes = [30, 50, 100, 200]
 
 file_dir = "test"
 for n_nodes in list_nodes:
+    np.random.seed(1234)
     x = np.random.uniform(size=[n_samples, n_nodes, 2])
     l_x = x.tolist()
     #print(x.shape, len(l_x), len(l_x[0]), len(l_x[0][0]))

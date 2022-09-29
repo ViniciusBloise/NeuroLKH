@@ -83,7 +83,7 @@ def plot_subline(x1, x2, y1, y2, lw, ax):
 
     segments = np.concatenate([points[:_SPACING//_PIECE-1], points[1:_SPACING//_PIECE]], axis=1)
     #print(segments)
-    lc = LineCollection(segments, linewidths=lw/2,color= _COLORS[5-lw])
+    lc = LineCollection(segments, linewidths=lw*4/5,color= _COLORS[5-lw])
   
     ax.add_collection(lc)
     return
@@ -144,9 +144,9 @@ if __name__ == '__main__':
 
         
         plot_candidates(pos=positions, candidate=cand, fig=fig, ax=ax)
-        #plot_problem(positions, pis, name=name, fig=fig, ax=ax)
+        plot_problem(positions, pis, name=name, fig=fig, ax=ax)
         plot_optimal_tour(pos=positions, optimal=optimal_tour)
-        plot_numbers(pos=positions, fig=fig, ax=ax)
+        #plot_numbers(pos=positions, fig=fig, ax=ax)
         
         plot_save(cfg, name, fig=fig, ax=ax)
         i += 1
