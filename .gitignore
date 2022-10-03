@@ -16,3 +16,4 @@ test/*.pkl
 tmp/
 train/*.pkl
 val/*.pkl
+*.zip

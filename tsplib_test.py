@@ -183,10 +183,11 @@ def eval_dataset(instance_names, method, args, opt_values):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='')
     parser.add_argument('--model_path', type=str, default='pretrained/neurolkh.pt', help='')
-    parser.add_argument('--n_samples', type=int, default=5, help='')
+    parser.add_argument('--n_samples', type=int, default=5, help='n# of samples')
+    parser.add_argument('--n_starting_sample', type=int, default=0, help='starting sample')
     args = parser.parse_args()
     instance_names = "kroB150 rat195 pr299 d493 rat575 pr1002 u1060 vm1084 pcb1173 rl1304 rl1323 nrw1379 fl1400 fl1577 vm1748 u1817 rl1889 d2103 u2152 pcb3038 fl3795 fnl4461 rl5915 rl5934"
-    instance_names = instance_names.split(" ")[:args.n_samples]
+    instance_names = instance_names.split(" ")[args.n_starting_sample:args.n_starting_sample + args.n_samples]
     with open("tsplib_data/opt.pkl", "rb") as f:
         opt_values = pickle.load(f)
     lkh_results = eval_dataset(instance_names, "LKH", args, opt_values)
