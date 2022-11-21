@@ -27,7 +27,7 @@ def write_instance(instance, instance_name, instance_filename):
         f.write("EOF\n")
 
 
-def write_para(dataset_name, instance_name, instance_filename, method, para_filename, max_trials=1000, seed=1234):
+def write_para(dataset_name, instance_name, instance_filename, method, para_filename, max_trials=1000, seed=1234, cand_set_type='ALPHA'):
     with open(para_filename, "w") as f:
         f.write("PROBLEM_FILE = " + instance_filename + "\n")
         f.write("MAX_TRIALS = " + str(max_trials) + "\n")
@@ -35,6 +35,7 @@ def write_para(dataset_name, instance_name, instance_filename, method, para_file
         f.write("SEED = " + str(seed) + "\n")
         if method == "NeuroLKH":
             f.write("SUBGRADIENT = NO\n")
+            f.write("CANDIDATE_SET_TYPE = " + cand_set_type + "\n")
             f.write("CANDIDATE_FILE = result/" + dataset_name + "/candidate/" + instance_name + ".txt\n")
             f.write("Pi_FILE = result/" + dataset_name + "/pi/" + instance_name + ".txt\n")
         elif method == "FeatGenerate":
@@ -63,9 +64,9 @@ def read_feat(feat_filename):
     return edge_index, edge_feat, inverse_edge_index, runtime
 
 
-def write_candidate_pi(dataset_name, instance_name, candidate, pi):
+def write_candidate_pi(dataset_name:str, instance_name:str, candidate, pi):
     n_node = candidate.shape[0]
-    with open("result/" + dataset_name + "/candidate/" + instance_name + ".txt", "w") as f:
+    with open(f"result/{dataset_name}/candidate/{instance_name}.txt", "w") as f:
         f.write(str(n_node) + "\n")
         for j in range(n_node):
             line = str(j + 1) + " 0 5"
@@ -73,7 +74,7 @@ def write_candidate_pi(dataset_name, instance_name, candidate, pi):
                 line += " " + str(int(candidate[j, _]) + 1) + " " + str(_ * 100)
             f.write(line + "\n")
         f.write("-1\nEOF\n")
-    with open("result/" + dataset_name + "/pi/" + instance_name + ".txt", "w") as f:
+    with open(f"result/{dataset_name}/pi/{instance_name}.txt", "w") as f:
         f.write(str(n_node) + "\n")
         for j in range(n_node):
             line = str(j + 1) + " " + str(int(pi[j]))
@@ -90,10 +91,10 @@ def method_wrapper(args):
         return generate_feat(*args[1:])
 
 
-def solve_LKH(dataset_name, instance, instance_name, rerun=False, max_trials=1000):
-    para_filename = "result/" + dataset_name + "/LKH_para/" + instance_name + ".para"
-    log_filename = "result/" + dataset_name + "/LKH_log/" + instance_name + ".log"
-    instance_filename = "result/" + dataset_name + "/tsp/" + instance_name + ".tsp"
+def solve_LKH(dataset_name:str, instance, instance_name, rerun=False, max_trials=1000, cand_set_type='ALPHA'):
+    para_filename = f"result/{dataset_name}/LKH_para/{instance_name}.para"
+    log_filename = f"result/{dataset_name}/LKH_log/{instance_name}.log"
+    instance_filename = f"result/{dataset_name}/tsp/{instance_name}.tsp"
     if rerun or not os.path.isfile(log_filename):
         write_instance(instance, instance_name, instance_filename)
         write_para(dataset_name, instance_name, instance_filename, "LKH", para_filename, max_trials=max_trials)
@@ -103,9 +104,9 @@ def solve_LKH(dataset_name, instance, instance_name, rerun=False, max_trials=100
 
 
 def generate_feat(dataset_name, instance, instance_name):
-    para_filename = "result/" + dataset_name + "/featgen_para/" + instance_name + ".para"
-    instance_filename = "result/" + dataset_name + "/tsp/" + instance_name + ".tsp"
-    feat_filename = "result/" + dataset_name + "/feat/" + instance_name + ".txt"
+    para_filename = f"result/{dataset_name}/featgen_para/{instance_name}.para"
+    instance_filename = f"result/{dataset_name}/tsp/{instance_name}.tsp"
+    feat_filename = f"result/{dataset_name}/feat/{instance_name}.txt"
     write_instance(instance, instance_name, instance_filename)
     write_para(dataset_name, instance_name, instance_filename, "FeatGenerate", para_filename)
     with tempfile.TemporaryFile() as f:
@@ -145,10 +146,10 @@ def infer_SGN(net, dataset_node_feat, dataset_edge_index, dataset_edge_feat, dat
     return candidate_Pi
 
 
-def solve_NeuroLKH(dataset_name, instance, instance_name, candidate, pi, rerun=False, max_trials=1000):
-    para_filename = "result/" + dataset_name + "/NeuroLKH_para/" + instance_name + ".para"
-    log_filename = "result/" + dataset_name + "/NeuroLKH_log/" + instance_name + ".log"
-    instance_filename = "result/" + dataset_name + "/tsp/" + instance_name + ".tsp"
+def solve_NeuroLKH(dataset_name:str, instance, instance_name, candidate, pi, rerun=False, max_trials=1000):
+    para_filename = f"result/{dataset_name}/NeuroLKH_para/{instance_name}.para"
+    log_filename = f"result/{dataset_name}/NeuroLKH_log/{instance_name}.log"
+    instance_filename = f"result/{dataset_name}/tsp/{instance_name}.tsp"
     if rerun or not os.path.isfile(log_filename):
         # write_instance(instance, instance_name, instance_filename)
         write_para(dataset_name, instance_name, instance_filename, "NeuroLKH", para_filename, max_trials=max_trials)
@@ -178,16 +179,16 @@ def read_results(log_filename, max_trials):
             return objs, runtimes
 
 
-def eval_dataset(dataset_filename, method, args, rerun=True, max_trials=1000):
+def eval_dataset(dataset_filename, method:str, args, rerun=True, max_trials=1000):
     dataset_name = dataset_filename.strip(".pkl").split("/")[-1]
-    os.makedirs("result/" + dataset_name + "/" + method + "_para", exist_ok=True)
-    os.makedirs("result/" + dataset_name + "/" + method + "_log", exist_ok=True)
-    os.makedirs("result/" + dataset_name + "/tsp", exist_ok=True)
+    os.makedirs(f"result/{dataset_name}/{method}_para", exist_ok=True)
+    os.makedirs(f"result/{dataset_name}/{method}_log", exist_ok=True)
+    os.makedirs(f"result/{dataset_name}/tsp", exist_ok=True)
     with open(dataset_filename, "rb") as f:
         dataset = pickle.load(f)[:args.n_samples]
     if method == "NeuroLKH":
-        os.makedirs("result/" + dataset_name + "/featgen_para", exist_ok=True)
-        os.makedirs("result/" + dataset_name + "/feat", exist_ok=True)
+        os.makedirs(f"result/{dataset_name}/featgen_para", exist_ok=True)
+        os.makedirs(f"result/{dataset_name}/feat", exist_ok=True)
         with Pool(os.cpu_count()) as pool:
             feats = list(tqdm.tqdm(
                 pool.imap(method_wrapper, [("FeatGen", dataset_name, dataset[i], str(i)) for i in range(len(dataset))]),
@@ -212,11 +213,12 @@ def eval_dataset(dataset_filename, method, args, rerun=True, max_trials=1000):
         n_node = len(dataset[0])
         candidate = candidate_Pi[:, :n_node * 5].reshape(-1, n_node, 5)
         pi = candidate_Pi[:, n_node * 5:].reshape(-1, n_node)
-        os.makedirs("result/" + dataset_name + "/candidate", exist_ok=True)
-        os.makedirs("result/" + dataset_name + "/pi", exist_ok=True)
+        os.makedirs(f"result/{dataset_name}/candidate", exist_ok=True)
+        os.makedirs(f"result/{dataset_name}/pi", exist_ok=True)
+        cand_set_type = args.cand_set_type
         with Pool(os.cpu_count()) as pool:
             results = list(tqdm.tqdm(pool.imap(method_wrapper, [
-                ("NeuroLKH", dataset_name, dataset[i], str(i), candidate[i], pi[i], rerun, max_trials) for i in
+                ("NeuroLKH", dataset_name, dataset[i], str(i), candidate[i], pi[i], rerun, max_trials, cand_set_type) for i in
                 range(len(dataset))]), total=len(dataset)))
     else:
         assert method == "LKH"
@@ -240,12 +242,14 @@ if __name__ == "__main__":
     parser.add_argument('--batch_size', type=int, default=100, help='')
     parser.add_argument('--lkh_trials', type=int, default=1000, help='')
     parser.add_argument('--neurolkh_trials', type=int, default=1000, help='')
+    parser.add_argument('--cand_set_type', type=str, default='ALPHA', help='candidate set type: ALPHA | DELAUNAY | DELAUNAYPURE | NEAREST-NEIGHBOR | QUADRANT | POPMUSIC')
     args = parser.parse_args()
     lkh_objs, lkh_runtimes, _, _ = eval_dataset(args.dataset, "LKH", args=args, rerun=True, max_trials=args.lkh_trials)
     neurolkh_objs, neurolkh_runtimes, feat_runtime, sgn_runtime = eval_dataset(args.dataset, "NeuroLKH", args=args,
                                                                                rerun=True,
                                                                                max_trials=args.neurolkh_trials)
     print("generating features runtime: %.1fs SGN inferring runtime: %.1fs" % (feat_runtime, sgn_runtime))
+    print("candidate set type = ", args.cand_set_type)
     trials = 1
     while trials <= lkh_objs.shape[0]:
         print("------experiments of trials: %d ------" % (trials))
