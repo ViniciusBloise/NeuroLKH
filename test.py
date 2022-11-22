@@ -91,7 +91,7 @@ def method_wrapper(args):
         return generate_feat(*args[1:])
 
 
-def solve_LKH(dataset_name:str, instance, instance_name, rerun=False, max_trials=1000, cand_set_type='ALPHA'):
+def solve_LKH(dataset_name:str, instance, instance_name, rerun=False, max_trials=1000):
     para_filename = f"result/{dataset_name}/LKH_para/{instance_name}.para"
     log_filename = f"result/{dataset_name}/LKH_log/{instance_name}.log"
     instance_filename = f"result/{dataset_name}/tsp/{instance_name}.tsp"
@@ -146,13 +146,13 @@ def infer_SGN(net, dataset_node_feat, dataset_edge_index, dataset_edge_feat, dat
     return candidate_Pi
 
 
-def solve_NeuroLKH(dataset_name:str, instance, instance_name, candidate, pi, rerun=False, max_trials=1000):
+def solve_NeuroLKH(dataset_name:str, instance, instance_name, candidate, pi, rerun=False, max_trials=1000, cand_set_type='ALPHA'):
     para_filename = f"result/{dataset_name}/NeuroLKH_para/{instance_name}.para"
     log_filename = f"result/{dataset_name}/NeuroLKH_log/{instance_name}.log"
     instance_filename = f"result/{dataset_name}/tsp/{instance_name}.tsp"
     if rerun or not os.path.isfile(log_filename):
         # write_instance(instance, instance_name, instance_filename)
-        write_para(dataset_name, instance_name, instance_filename, "NeuroLKH", para_filename, max_trials=max_trials)
+        write_para(dataset_name, instance_name, instance_filename, "NeuroLKH", para_filename, max_trials=max_trials, cand_set_type=cand_set_type)
         write_candidate_pi(dataset_name, instance_name, candidate, pi)
         with open(log_filename, "w") as f:
             check_call(["./LKH", para_filename], stdout=f)
