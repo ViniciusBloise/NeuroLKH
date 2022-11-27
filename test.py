@@ -11,6 +11,7 @@ from tqdm import trange
 import argparse
 import time
 import tempfile
+from datetime import datetime
 
 
 def write_instance(instance, instance_name, instance_filename):
@@ -84,14 +85,16 @@ def write_candidate_pi(dataset_name:str, instance_name:str, candidate, pi):
 
 def method_wrapper(args):
     if args[0] == "LKH":
-        return solve_LKH(*args[1:])
+        return solve_LKH(*args)
+    elif args[0] == 'VSR-LKH':
+        return solve_LKH(*args)
     elif args[0] == "NeuroLKH":
         return solve_NeuroLKH(*args[1:])
     elif args[0] == "FeatGen":
         return generate_feat(*args[1:])
 
 
-def solve_LKH(dataset_name:str, instance, instance_name, rerun=False, max_trials=1000):
+def solve_LKH(method, dataset_name:str, instance, instance_name, rerun=False, max_trials=1000):
     para_filename = f"result/{dataset_name}/LKH_para/{instance_name}.para"
     log_filename = f"result/{dataset_name}/LKH_log/{instance_name}.log"
     instance_filename = f"result/{dataset_name}/tsp/{instance_name}.tsp"
@@ -99,7 +102,8 @@ def solve_LKH(dataset_name:str, instance, instance_name, rerun=False, max_trials
         write_instance(instance, instance_name, instance_filename)
         write_para(dataset_name, instance_name, instance_filename, "LKH", para_filename, max_trials=max_trials)
         with open(log_filename, "w") as f:
-            check_call(["./LKH", para_filename], stdout=f)
+            exec_LKH = './LKH' if method == 'LKH' else '../VSR-LKH/LKH'
+            check_call([exec_LKH, para_filename], stdout=f)
     return read_results(log_filename, max_trials)
 
 
@@ -178,9 +182,12 @@ def read_results(log_filename, max_trials):
             assert objs[-1] == final_obj
             return objs, runtimes
 
+def get_dataset_name(dataset_filename:str):
+    return dataset_filename.strip(".pkl").split("/")[-1]
 
 def eval_dataset(dataset_filename, method:str, args, rerun=True, max_trials=1000):
-    dataset_name = dataset_filename.strip(".pkl").split("/")[-1]
+    dataset_name = get_dataset_name(dataset_filename)
+
     os.makedirs(f"result/{dataset_name}/{method}_para", exist_ok=True)
     os.makedirs(f"result/{dataset_name}/{method}_log", exist_ok=True)
     os.makedirs(f"result/{dataset_name}/tsp", exist_ok=True)
@@ -221,18 +228,22 @@ def eval_dataset(dataset_filename, method:str, args, rerun=True, max_trials=1000
                 ("NeuroLKH", dataset_name, dataset[i], str(i), candidate[i], pi[i], rerun, max_trials, cand_set_type) for i in
                 range(len(dataset))]), total=len(dataset)))
     else:
-        assert method == "LKH"
+        assert method == "LKH" or method == 'VSR-LKH'
         feat_runtime = 0
         sgn_runtime = 0
         with Pool(os.cpu_count()) as pool:
             results = list(tqdm.tqdm(pool.imap(method_wrapper,
-                                               [("LKH", dataset_name, dataset[i], str(i), rerun, max_trials) for i in
+                                               [(method, dataset_name, dataset[i], str(i), rerun, max_trials) for i in
                                                 range(len(dataset))]), total=len(dataset)))
     results = np.array(results)
     dataset_objs = results[:, 0, :].mean(0)
     dataset_runtimes = results[:, 1, :].sum(0)
     return dataset_objs, dataset_runtimes, feat_runtime, sgn_runtime
 
+def create_stat_file(stats_output: str, comp_type, cand_set_type, stats_name):
+    os.makedirs(stats_output, exist_ok=True)
+    filename = f"{stats_output}/t_{comp_type}_{cand_set_type}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+    return filename
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='')
@@ -242,36 +253,44 @@ if __name__ == "__main__":
     parser.add_argument('--batch_size', type=int, default=100, help='')
     parser.add_argument('--lkh_trials', type=int, default=1000, help='')
     parser.add_argument('--neurolkh_trials', type=int, default=1000, help='')
-    parser.add_argument('--cand_set_type', type=str, default='ALPHA', help='candidate set type: ALPHA | DELAUNAY | DELAUNAYPURE | NEAREST-NEIGHBOR | QUADRANT | POPMUSIC')
+    parser.add_argument('--cand_set_type', type=str, default='ALPHA', help='candidate set type: ALPHA | DELAUNAY | NEAREST-NEIGHBOR | QUADRANT | POPMUSIC')
+    parser.add_argument('--comp_type', type=str, default='NeuroLKH', help='comparison type: NeuroLKH | VSR-LKH')
+    parser.add_argument('--stats_output', type=str, default='result/100/stats', help='default dir for stats file')
+
     args = parser.parse_args()
     lkh_objs, lkh_runtimes, _, _ = eval_dataset(args.dataset, "LKH", args=args, rerun=True, max_trials=args.lkh_trials)
-    neurolkh_objs, neurolkh_runtimes, feat_runtime, sgn_runtime = eval_dataset(args.dataset, "NeuroLKH", args=args,
+    neurolkh_objs, neurolkh_runtimes, feat_runtime, sgn_runtime = eval_dataset(args.dataset, args.comp_type, args=args,
                                                                                rerun=True,
                                                                                max_trials=args.neurolkh_trials)
     print("generating features runtime: %.1fs SGN inferring runtime: %.1fs" % (feat_runtime, sgn_runtime))
+    print('comparison type to algorithm: %s', args.comp_type)
     print("candidate set type = ", args.cand_set_type)
     trials = 1
-    while trials <= lkh_objs.shape[0]:
-        print("------experiments of trials: %d ------" % (trials))
-        print("LKH      %d %ds" % (lkh_objs[trials - 1], lkh_runtimes[trials - 1]))
-        if trials > neurolkh_objs.shape[0]:
-            print("NeuroLKH %d %ds (%d trials)" % (
-                neurolkh_objs[-1], neurolkh_runtimes[-1] + feat_runtime + sgn_runtime, neurolkh_objs.shape[0]))
-        else:
-            print("NeuroLKH %d %ds" % (
-                neurolkh_objs[trials - 1], neurolkh_runtimes[trials - 1] + feat_runtime + sgn_runtime))
-        trials *= 10
 
-    print("------comparison with same time limit------")
-    trials = 1
-    while trials <= lkh_objs.shape[0]:
-        print("------experiments of trials: %d ------" % (trials))
-        print("LKH      %d %ds" % (lkh_objs[trials - 1], lkh_runtimes[trials - 1]))
-        neurolkh_trials = 1
-        while neurolkh_trials < neurolkh_runtimes.shape[0] and neurolkh_runtimes[
-            neurolkh_trials - 1] + feat_runtime + sgn_runtime < lkh_runtimes[trials - 1]:
-            neurolkh_trials += 1
-        print("NeuroLKH %d %ds (%d trials)" % (
-            neurolkh_objs[neurolkh_trials - 1], neurolkh_runtimes[neurolkh_trials - 1] + feat_runtime + sgn_runtime,
-            neurolkh_trials))
-        trials *= 10
+    stats_file = create_stat_file(args.dataset, args.comp_type, args.cand_set_type, get_dataset_name(args.dataset))
+
+    with open(stats_file, "w") as f:
+        while trials <= lkh_objs.shape[0]:
+            print("------experiments of trials: %d ------" % (trials))
+            print("LKH      %d %ds" % (lkh_objs[trials - 1], lkh_runtimes[trials - 1]))
+            if trials > neurolkh_objs.shape[0]:
+                print("%s %d %ds (%d trials)" % (args.comp_type,
+                    neurolkh_objs[-1], neurolkh_runtimes[-1] + feat_runtime + sgn_runtime, neurolkh_objs.shape[0]))
+            else:
+                print("%s %d %ds" % (args.comp_type,
+                    neurolkh_objs[trials - 1], neurolkh_runtimes[trials - 1] + feat_runtime + sgn_runtime))
+            trials *= 10
+
+        print("------comparison with same time limit------")
+        trials = 1
+        while trials <= lkh_objs.shape[0]:
+            print("------experiments of trials: %d ------" % (trials))
+            print("LKH      %d %ds" % (lkh_objs[trials - 1], lkh_runtimes[trials - 1]))
+            neurolkh_trials = 1
+            while neurolkh_trials < neurolkh_runtimes.shape[0] and neurolkh_runtimes[
+                neurolkh_trials - 1] + feat_runtime + sgn_runtime < lkh_runtimes[trials - 1]:
+                neurolkh_trials += 1
+            print("%s %d %ds (%d trials)" % (args.comp_type,
+                neurolkh_objs[neurolkh_trials - 1], neurolkh_runtimes[neurolkh_trials - 1] + feat_runtime + sgn_runtime,
+                neurolkh_trials))
+            trials *= 10
