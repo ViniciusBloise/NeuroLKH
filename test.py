@@ -24,7 +24,8 @@ def write_instance(instance, instance_name, instance_filename):
         f.write("NODE_COORD_SECTION\n")
         s = 1000000
         for i in range(len(instance)):
-            f.write(" " + str(i + 1) + " " + str(instance[i][0] * s)[:10] + " " + str(instance[i][1] * s)[:10] + "\n")
+            f.write(" " + str(i + 1) + " " + str(instance[i][0] * s)[
+                    :10] + " " + str(instance[i][1] * s)[:10] + "\n")
         f.write("EOF\n")
 
 
@@ -37,11 +38,14 @@ def write_para(dataset_name, instance_name, instance_filename, method, para_file
         if method == "NeuroLKH":
             f.write("SUBGRADIENT = NO\n")
             f.write("CANDIDATE_SET_TYPE = " + cand_set_type + "\n")
-            f.write("CANDIDATE_FILE = result/" + dataset_name + "/candidate/" + instance_name + ".txt\n")
-            f.write("Pi_FILE = result/" + dataset_name + "/pi/" + instance_name + ".txt\n")
+            f.write("CANDIDATE_FILE = result/" + dataset_name +
+                    "/candidate/" + instance_name + ".txt\n")
+            f.write("Pi_FILE = result/" + dataset_name +
+                    "/pi/" + instance_name + ".txt\n")
         elif method == "FeatGenerate":
             f.write("GerenatingFeature\n")
-            f.write("Feat_FILE = result/" + dataset_name + "/feat/" + instance_name + ".txt\n")
+            f.write("Feat_FILE = result/" + dataset_name +
+                    "/feat/" + instance_name + ".txt\n")
         else:
             assert method == "LKH"
 
@@ -65,14 +69,15 @@ def read_feat(feat_filename):
     return edge_index, edge_feat, inverse_edge_index, runtime
 
 
-def write_candidate_pi(dataset_name:str, instance_name:str, candidate, pi):
+def write_candidate_pi(dataset_name: str, instance_name: str, candidate, pi):
     n_node = candidate.shape[0]
     with open(f"result/{dataset_name}/candidate/{instance_name}.txt", "w") as f:
         f.write(str(n_node) + "\n")
         for j in range(n_node):
             line = str(j + 1) + " 0 5"
             for _ in range(5):
-                line += " " + str(int(candidate[j, _]) + 1) + " " + str(_ * 100)
+                line += " " + \
+                    str(int(candidate[j, _]) + 1) + " " + str(_ * 100)
             f.write(line + "\n")
         f.write("-1\nEOF\n")
     with open(f"result/{dataset_name}/pi/{instance_name}.txt", "w") as f:
@@ -94,13 +99,14 @@ def method_wrapper(args):
         return generate_feat(*args[1:])
 
 
-def solve_LKH(method, dataset_name:str, instance, instance_name, rerun=False, max_trials=1000):
+def solve_LKH(method, dataset_name: str, instance, instance_name, rerun=False, max_trials=1000):
     para_filename = f"result/{dataset_name}/LKH_para/{instance_name}.para"
     log_filename = f"result/{dataset_name}/LKH_log/{instance_name}.log"
     instance_filename = f"result/{dataset_name}/tsp/{instance_name}.tsp"
     if rerun or not os.path.isfile(log_filename):
         write_instance(instance, instance_name, instance_filename)
-        write_para(dataset_name, instance_name, instance_filename, "LKH", para_filename, max_trials=max_trials)
+        write_para(dataset_name, instance_name, instance_filename,
+                   "LKH", para_filename, max_trials=max_trials)
         with open(log_filename, "w") as f:
             exec_LKH = './LKH' if method == 'LKH' else '../VSR-LKH/LKH'
             check_call([exec_LKH, para_filename], stdout=f)
@@ -112,7 +118,8 @@ def generate_feat(dataset_name, instance, instance_name):
     instance_filename = f"result/{dataset_name}/tsp/{instance_name}.tsp"
     feat_filename = f"result/{dataset_name}/feat/{instance_name}.txt"
     write_instance(instance, instance_name, instance_filename)
-    write_para(dataset_name, instance_name, instance_filename, "FeatGenerate", para_filename)
+    write_para(dataset_name, instance_name, instance_filename,
+               "FeatGenerate", para_filename)
     with tempfile.TemporaryFile() as f:
         check_call(["./LKH", para_filename], stdout=f)
     return read_feat(feat_filename)
@@ -126,18 +133,22 @@ def infer_SGN(net, dataset_node_feat, dataset_edge_index, dataset_edge_feat, dat
         node_feat = dataset_node_feat[i * batch_size:(i + 1) * batch_size]
         edge_index = dataset_edge_index[i * batch_size:(i + 1) * batch_size]
         edge_feat = dataset_edge_feat[i * batch_size:(i + 1) * batch_size]
-        inverse_edge_index = dataset_inverse_edge_index[i * batch_size:(i + 1) * batch_size]
-        node_feat = Variable(torch.FloatTensor(node_feat).type(torch.cuda.FloatTensor), requires_grad=False)
+        inverse_edge_index = dataset_inverse_edge_index[i *
+                                                        batch_size:(i + 1) * batch_size]
+        node_feat = Variable(torch.FloatTensor(node_feat).type(
+            torch.cuda.FloatTensor), requires_grad=False)
         edge_feat = Variable(torch.FloatTensor(edge_feat).type(torch.cuda.FloatTensor), requires_grad=False).view(
             batch_size, -1, 1)
         edge_index = Variable(torch.FloatTensor(edge_index).type(torch.cuda.FloatTensor), requires_grad=False).view(
             batch_size, -1)
         inverse_edge_index = Variable(torch.FloatTensor(inverse_edge_index).type(torch.cuda.FloatTensor),
                                       requires_grad=False).view(batch_size, -1)
-        y_edges, _, y_nodes = net.forward(node_feat, edge_feat, edge_index, inverse_edge_index, None, None, 20)
+        y_edges, _, y_nodes = net.forward(
+            node_feat, edge_feat, edge_index, inverse_edge_index, None, None, 20)
         pi.append(y_nodes.cpu().numpy())
         y_edges = y_edges.detach().cpu().numpy()
-        y_edges = y_edges[:, :, 1].reshape(batch_size, dataset_node_feat.shape[1], 20)
+        y_edges = y_edges[:, :, 1].reshape(
+            batch_size, dataset_node_feat.shape[1], 20)
         y_edges = np.argsort(-y_edges, -1)
         edge_index = edge_index.cpu().numpy().reshape(-1, y_edges.shape[1], 20)
         candidate_index = edge_index[
@@ -150,13 +161,14 @@ def infer_SGN(net, dataset_node_feat, dataset_edge_index, dataset_edge_feat, dat
     return candidate_Pi
 
 
-def solve_NeuroLKH(dataset_name:str, instance, instance_name, candidate, pi, rerun=False, max_trials=1000, cand_set_type='ALPHA'):
+def solve_NeuroLKH(dataset_name: str, instance, instance_name, candidate, pi, rerun=False, max_trials=1000, cand_set_type='ALPHA'):
     para_filename = f"result/{dataset_name}/NeuroLKH_para/{instance_name}.para"
     log_filename = f"result/{dataset_name}/NeuroLKH_log/{instance_name}.log"
     instance_filename = f"result/{dataset_name}/tsp/{instance_name}.tsp"
     if rerun or not os.path.isfile(log_filename):
         # write_instance(instance, instance_name, instance_filename)
-        write_para(dataset_name, instance_name, instance_filename, "NeuroLKH", para_filename, max_trials=max_trials, cand_set_type=cand_set_type)
+        write_para(dataset_name, instance_name, instance_filename, "NeuroLKH",
+                   para_filename, max_trials=max_trials, cand_set_type=cand_set_type)
         write_candidate_pi(dataset_name, instance_name, candidate, pi)
         with open(log_filename, "w") as f:
             check_call(["./LKH", para_filename], stdout=f)
@@ -169,23 +181,25 @@ def read_results(log_filename, max_trials):
     with open(log_filename, "r") as f:
         lines = f.readlines()
         for line in lines:  # read the obj and runtime for each trial
-            if line[:6] == "-Trial":
+            if line.startswith('-Trial'):
                 line = line.strip().split(" ")
                 assert len(objs) + 1 == int(line[-3])
                 objs.append(int(line[-2]))
                 runtimes.append(float(line[-1]))
         final_obj = int(lines[-6].split(",")[0].split(" ")[-1])
         if len(objs) == 0:  # solved by subgradient optimization
-            ascent_runtime = float(lines[66].split(" ")[-2])
+            ascent_runtime = float(lines[-2].split(" ")[-2])
             return [final_obj] * max_trials, [ascent_runtime] * max_trials
         else:
             assert objs[-1] == final_obj
             return objs, runtimes
 
-def get_dataset_name(dataset_filename:str):
+
+def get_dataset_name(dataset_filename: str):
     return dataset_filename.strip(".pkl").split("/")[-1]
 
-def eval_dataset(dataset_filename, method:str, args, rerun=True, max_trials=1000):
+
+def eval_dataset(dataset_filename, method: str, args, rerun=True, max_trials=1000):
     dataset_name = get_dataset_name(dataset_filename)
 
     os.makedirs(f"result/{dataset_name}/{method}_para", exist_ok=True)
@@ -198,7 +212,8 @@ def eval_dataset(dataset_filename, method:str, args, rerun=True, max_trials=1000
         os.makedirs(f"result/{dataset_name}/feat", exist_ok=True)
         with Pool(os.cpu_count()) as pool:
             feats = list(tqdm.tqdm(
-                pool.imap(method_wrapper, [("FeatGen", dataset_name, dataset[i], str(i)) for i in range(len(dataset))]),
+                pool.imap(method_wrapper, [
+                          ("FeatGen", dataset_name, dataset[i], str(i)) for i in range(len(dataset))]),
                 total=len(dataset)))
         feats = list(zip(*feats))
         edge_index, edge_feat, inverse_edge_index, feat_runtime = feats
@@ -240,57 +255,69 @@ def eval_dataset(dataset_filename, method:str, args, rerun=True, max_trials=1000
     dataset_runtimes = results[:, 1, :].sum(0)
     return dataset_objs, dataset_runtimes, feat_runtime, sgn_runtime
 
+
 def create_stat_file(stats_output: str, comp_type, cand_set_type, stats_name):
     os.makedirs(stats_output, exist_ok=True)
     filename = f"{stats_output}/t_{comp_type}_{cand_set_type}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
     return filename
 
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='')
     parser.add_argument('--dataset', type=str, default='test/100.pkl', help='')
-    parser.add_argument('--model_path', type=str, default='pretrained/neurolkh.pt', help='')
+    parser.add_argument('--model_path', type=str,
+                        default='pretrained/neurolkh.pt', help='')
     parser.add_argument('--n_samples', type=int, default=1000, help='')
     parser.add_argument('--batch_size', type=int, default=100, help='')
     parser.add_argument('--lkh_trials', type=int, default=1000, help='')
     parser.add_argument('--neurolkh_trials', type=int, default=1000, help='')
-    parser.add_argument('--cand_set_type', type=str, default='ALPHA', help='candidate set type: ALPHA | DELAUNAY | NEAREST-NEIGHBOR | QUADRANT | POPMUSIC')
-    parser.add_argument('--comp_type', type=str, default='NeuroLKH', help='comparison type: NeuroLKH | VSR-LKH')
-    parser.add_argument('--stats_output', type=str, default='result/100/stats', help='default dir for stats file')
+    parser.add_argument('--cand_set_type', type=str, default='ALPHA',
+                        help='candidate set type: ALPHA | DELAUNAY | NEAREST-NEIGHBOR | QUADRANT | POPMUSIC')
+    parser.add_argument('--comp_type', type=str, default='NeuroLKH',
+                        help='comparison type: NeuroLKH | VSR-LKH')
+    parser.add_argument('--stats_output', type=str,
+                        default='result/100/stats', help='default dir for stats file')
 
     args = parser.parse_args()
-    lkh_objs, lkh_runtimes, _, _ = eval_dataset(args.dataset, "LKH", args=args, rerun=True, max_trials=args.lkh_trials)
+    lkh_objs, lkh_runtimes, _, _ = eval_dataset(
+        args.dataset, "LKH", args=args, rerun=True, max_trials=args.lkh_trials)
     neurolkh_objs, neurolkh_runtimes, feat_runtime, sgn_runtime = eval_dataset(args.dataset, args.comp_type, args=args,
                                                                                rerun=True,
                                                                                max_trials=args.neurolkh_trials)
-    print("generating features runtime: %.1fs SGN inferring runtime: %.1fs" % (feat_runtime, sgn_runtime))
+    print("generating features runtime: %.1fs SGN inferring runtime: %.1fs" %
+          (feat_runtime, sgn_runtime))
     print('comparison type to algorithm: %s', args.comp_type)
     print("candidate set type = ", args.cand_set_type)
     trials = 1
 
-    stats_file = create_stat_file(args.dataset, args.comp_type, args.cand_set_type, get_dataset_name(args.dataset))
+    stats_file = create_stat_file(
+        args.dataset, args.comp_type, args.cand_set_type, get_dataset_name(args.dataset))
 
     with open(stats_file, "w") as f:
         while trials <= lkh_objs.shape[0]:
             print("------experiments of trials: %d ------" % (trials))
-            print("LKH      %d %ds" % (lkh_objs[trials - 1], lkh_runtimes[trials - 1]))
+            print("LKH      %d %ds" %
+                  (lkh_objs[trials - 1], lkh_runtimes[trials - 1]))
             if trials > neurolkh_objs.shape[0]:
                 print("%s %d %ds (%d trials)" % (args.comp_type,
-                    neurolkh_objs[-1], neurolkh_runtimes[-1] + feat_runtime + sgn_runtime, neurolkh_objs.shape[0]))
+                                                 neurolkh_objs[-1], neurolkh_runtimes[-1] + feat_runtime + sgn_runtime, neurolkh_objs.shape[0]))
             else:
                 print("%s %d %ds" % (args.comp_type,
-                    neurolkh_objs[trials - 1], neurolkh_runtimes[trials - 1] + feat_runtime + sgn_runtime))
+                                     neurolkh_objs[trials - 1], neurolkh_runtimes[trials - 1] + feat_runtime + sgn_runtime))
             trials *= 10
 
         print("------comparison with same time limit------")
         trials = 1
         while trials <= lkh_objs.shape[0]:
             print("------experiments of trials: %d ------" % (trials))
-            print("LKH      %d %ds" % (lkh_objs[trials - 1], lkh_runtimes[trials - 1]))
+            print("LKH      %d %ds" %
+                  (lkh_objs[trials - 1], lkh_runtimes[trials - 1]))
             neurolkh_trials = 1
             while neurolkh_trials < neurolkh_runtimes.shape[0] and neurolkh_runtimes[
-                neurolkh_trials - 1] + feat_runtime + sgn_runtime < lkh_runtimes[trials - 1]:
+                    neurolkh_trials - 1] + feat_runtime + sgn_runtime < lkh_runtimes[trials - 1]:
                 neurolkh_trials += 1
             print("%s %d %ds (%d trials)" % (args.comp_type,
-                neurolkh_objs[neurolkh_trials - 1], neurolkh_runtimes[neurolkh_trials - 1] + feat_runtime + sgn_runtime,
-                neurolkh_trials))
+                                             neurolkh_objs[neurolkh_trials - 1], neurolkh_runtimes[neurolkh_trials -
+                                                                                                   1] + feat_runtime + sgn_runtime,
+                                             neurolkh_trials))
             trials *= 10
