@@ -48,6 +48,7 @@ def write_para(dataset_name, instance_name, instance_filename, method, para_file
                     "/feat/" + instance_name + ".txt\n")
         else:
             assert method == "LKH"
+            f.write("CANDIDATE_SET_TYPE = " + cand_set_type + "\n")
 
 
 def read_feat(feat_filename):
@@ -261,6 +262,8 @@ def create_stat_file(stats_output: str, comp_type, cand_set_type, stats_name):
     filename = f"{stats_output}/t_{comp_type}_{cand_set_type}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
     return filename
 
+def get_sample_size(dataset:str):
+    return dataset.strip('.pkl').split('/')[-1]
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='')
@@ -290,6 +293,8 @@ if __name__ == "__main__":
     print("candidate set type = ", args.cand_set_type)
     trials = 1
 
+    sample_size = get_sample_size(args.dataset)
+
     stats_file = create_stat_file(
         args.stats_output, args.comp_type, args.cand_set_type, get_dataset_name(args.dataset))
 
@@ -298,12 +303,17 @@ if __name__ == "__main__":
             print("------experiments of trials: %d ------" % (trials))
             print("LKH      %d %ds" %
                   (lkh_objs[trials - 1], lkh_runtimes[trials - 1]))
+            f.write(','.join(str(x) for x in ['LKH', sample_size, args.cand_set_type, 'trials', trials, trials, lkh_objs[trials - 1], lkh_runtimes[trials - 1]]) + '\n')
             if trials > neurolkh_objs.shape[0]:
                 print("%s %d %ds (%d trials)" % (args.comp_type,
                                                  neurolkh_objs[-1], neurolkh_runtimes[-1] + feat_runtime + sgn_runtime, neurolkh_objs.shape[0]))
+                f.write(','.join(str(x) for x in [args.comp_type, sample_size, args.cand_set_type, 'trials', trials, 
+                    neurolkh_objs.shape[0], neurolkh_objs[-1], neurolkh_runtimes[-1] + feat_runtime + sgn_runtime]) + '\n')
             else:
                 print("%s %d %ds" % (args.comp_type,
                                      neurolkh_objs[trials - 1], neurolkh_runtimes[trials - 1] + feat_runtime + sgn_runtime))
+                f.write(','.join(str(x) for x in [args.comp_type, sample_size, args.cand_set_type, 'trials', trials, 
+                    trials, neurolkh_objs[trials - 1], neurolkh_runtimes[trials - 1] + feat_runtime + sgn_runtime]) + '\n')
             trials *= 10
 
         print("------comparison with same time limit------")
@@ -312,6 +322,7 @@ if __name__ == "__main__":
             print("------experiments of trials: %d ------" % (trials))
             print("LKH      %d %ds" %
                   (lkh_objs[trials - 1], lkh_runtimes[trials - 1]))
+            f.write(','.join(str(x) for x in ['LKH', sample_size, args.cand_set_type, 'timelimit', trials, trials, lkh_objs[trials - 1], lkh_runtimes[trials - 1]]) + '\n')
             neurolkh_trials = 1
             while neurolkh_trials < neurolkh_runtimes.shape[0] and neurolkh_runtimes[
                     neurolkh_trials - 1] + feat_runtime + sgn_runtime < lkh_runtimes[trials - 1]:
@@ -320,4 +331,6 @@ if __name__ == "__main__":
                                              neurolkh_objs[neurolkh_trials - 1], neurolkh_runtimes[neurolkh_trials -
                                                                                                    1] + feat_runtime + sgn_runtime,
                                              neurolkh_trials))
+            f.write(','.join(str(x) for x in [args.comp_type, sample_size, args.cand_set_type, 'timelimit', trials, 
+                    neurolkh_trials, neurolkh_objs[neurolkh_trials - 1], neurolkh_runtimes[neurolkh_trials - 1] + feat_runtime + sgn_runtime]) + '\n')
             trials *= 10
