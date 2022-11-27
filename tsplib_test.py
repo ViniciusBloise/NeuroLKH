@@ -63,18 +63,21 @@ def write_candidate_pi(dataset_name, instance_name, candidate, pi):
 
 def method_wrapper(args):
     if args[0] == "LKH":
-        return solve_LKH(*args[1:])
+        return solve_LKH(*args)
+    elif args[0] == 'VSR-LKH':
+        return solve_LKH(*args)
     elif args[0] == "NeuroLKH":
         return solve_NeuroLKH(*args[1:])
     elif args[0] == "FeatGen":
         return generate_feat(*args[1:])
 
-def solve_LKH(instance_name, opt_value):
-    para_filename = "result/tsplib/LKH_para/" + instance_name + ".para"
-    log_filename = "result/tsplib/LKH_log/" + instance_name + ".log"
+def solve_LKH(method, instance_name, opt_value):
+    para_filename = f"result/tsplib/{method}_para/{instance_name}.para"
+    log_filename = f"result/tsplib/{method}_log/{instance_name}.log"
     write_para(instance_name, "LKH", para_filename, opt_value)
     with open(log_filename, "w") as f:
-        check_call(["./LKH", para_filename], stdout=f)
+        exec_LKH = './LKH' if method == 'LKH' else '../VSR-LKH/LKH'
+        check_call([exec_LKH, para_filename], stdout=f)
     return read_results(log_filename)
 
 def infer_SGN_write_candidate(net, instance_names):
@@ -157,9 +160,9 @@ def read_results(log_filename):
         time = float(lines[-3].split(",")[1].split(" ")[-2])
         return successes, cost_min, cost_avg, trials_min, trials_avg, time
 
-def eval_dataset(instance_names, method, args, opt_values):
-    os.makedirs("result/tsplib/" + method + "_para", exist_ok=True)
-    os.makedirs("result/tsplib/" + method + "_log", exist_ok=True)
+def eval_dataset(instance_names, method: str, args, opt_values):
+    os.makedirs(f"result/tsplib/{method}_para", exist_ok=True)
+    os.makedirs(f"result/tsplib/{method}_log", exist_ok=True)
     if method == "NeuroLKH":
         os.makedirs("result/tsplib/candidate", exist_ok=True)
         net = SparseGCNModel()
@@ -173,11 +176,11 @@ def eval_dataset(instance_names, method, args, opt_values):
         with Pool(os.cpu_count()) as pool:
             results = list(tqdm.tqdm(pool.imap(method_wrapper, [("NeuroLKH", instance_names[i], opt_values[instance_names[i]]) for i in range(len(instance_names))]), total=len(instance_names)))
     else:
-        assert method == "LKH"
+        assert method == "LKH" or method == 'VSR-LKH'
         feat_runtime = 0
         sgn_runtime = 0
         with Pool(os.cpu_count()) as pool:
-            results = list(tqdm.tqdm(pool.imap(method_wrapper, [("LKH", instance_names[i], opt_values[instance_names[i]]) for i in range(len(instance_names))]), total=len(instance_names)))
+            results = list(tqdm.tqdm(pool.imap(method_wrapper, [(method, instance_names[i], opt_values[instance_names[i]]) for i in range(len(instance_names))]), total=len(instance_names)))
     return results
 
 if __name__ == "__main__":
@@ -185,7 +188,10 @@ if __name__ == "__main__":
     parser.add_argument('--model_path', type=str, default='pretrained/neurolkh.pt', help='')
     parser.add_argument('--n_samples', type=int, default=5, help='n# of samples')
     parser.add_argument('--n_starting_sample', type=int, default=0, help='starting sample')
+    parser.add_argument('--comp_type', type=str, default='NeuroLKH',
+                        help='comparison type: NeuroLKH | VSR-LKH')
     args = parser.parse_args()
+
     instance_names = "kroB150 rat195 pr299 d493 rat575 pr1002 u1060 vm1084 pcb1173 rl1304 rl1323 nrw1379 fl1400 fl1577 vm1748 u1817 rl1889 d2103 u2152 pcb3038 fl3795 fnl4461 rl5915 rl5934"
     instance_names = instance_names.split(" ")[args.n_starting_sample:args.n_starting_sample + args.n_samples]
     with open("tsplib_data/opt.pkl", "rb") as f:
@@ -194,9 +200,11 @@ if __name__ == "__main__":
     neurolkh_r_results = eval_dataset(instance_names, "NeuroLKH", args, opt_values)
     args.model_path = "pretrained/neurolkh_m.pt"
     neurolkh_m_results = eval_dataset(instance_names, "NeuroLKH", args, opt_values)
+    vsr_lkh_results = eval_dataset(instance_names, "VSR-LKH", args, opt_values)
     print ("Successes Best Avgerage Trials_Min Trials_Avg Time")
     for i in range(len(lkh_results)):
         print ("------%s------" % (instance_names[i]))
         print (lkh_results[i])
         print (neurolkh_r_results[i])
         print (neurolkh_m_results[i])
+        print (vsr_lkh_results[i])
