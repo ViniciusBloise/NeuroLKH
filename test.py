@@ -291,7 +291,7 @@ if __name__ == "__main__":
     trials = 1
 
     stats_file = create_stat_file(
-        args.dataset, args.comp_type, args.cand_set_type, get_dataset_name(args.dataset))
+        args.stats_output, args.comp_type, args.cand_set_type, get_dataset_name(args.dataset))
 
     with open(stats_file, "w") as f:
         while trials <= lkh_objs.shape[0]:
