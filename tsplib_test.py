@@ -11,6 +11,8 @@ from tqdm import trange
 import argparse
 import time
 import tempfile
+from datetime import datetime
+import re
 
 def write_para(instance_name, method, para_filename, opt_value):
     with open(para_filename, "w") as f:
@@ -183,6 +185,14 @@ def eval_dataset(instance_names, method: str, args, opt_values):
             results = list(tqdm.tqdm(pool.imap(method_wrapper, [(method, instance_names[i], opt_values[instance_names[i]]) for i in range(len(instance_names))]), total=len(instance_names)))
     return results
 
+def create_stat_file(stats_output: str):
+    os.makedirs(stats_output, exist_ok=True)
+    filename = f"{stats_output}/cmp_tsplib_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+    return filename
+
+def get_prob_size(inst_name: str):
+    return re.find(r'\d+', inst_name)[0]
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='')
     parser.add_argument('--model_path', type=str, default='pretrained/neurolkh.pt', help='')
@@ -190,6 +200,8 @@ if __name__ == "__main__":
     parser.add_argument('--n_starting_sample', type=int, default=0, help='starting sample')
     parser.add_argument('--comp_type', type=str, default='NeuroLKH',
                         help='comparison type: NeuroLKH | VSR-LKH')
+    parser.add_argument('--stats_output', type=str,
+                        default='result/100/stats', help='default dir for stats file')
     args = parser.parse_args()
 
     instance_names = "kroB150 rat195 pr299 d493 rat575 pr1002 u1060 vm1084 pcb1173 rl1304 rl1323 nrw1379 fl1400 fl1577 vm1748 u1817 rl1889 d2103 u2152 pcb3038 fl3795 fnl4461 rl5915 rl5934"
@@ -201,10 +213,18 @@ if __name__ == "__main__":
     args.model_path = "pretrained/neurolkh_m.pt"
     neurolkh_m_results = eval_dataset(instance_names, "NeuroLKH", args, opt_values)
     vsr_lkh_results = eval_dataset(instance_names, "VSR-LKH", args, opt_values)
-    print ("Successes Best Avgerage Trials_Min Trials_Avg Time")
-    for i in range(len(lkh_results)):
-        print ("------%s------" % (instance_names[i]))
-        print (lkh_results[i])
-        print (neurolkh_r_results[i])
-        print (neurolkh_m_results[i])
-        print (vsr_lkh_results[i])
+
+
+    stats_file = create_stat_file(args.stats_output)
+    with open(stats_file, "w") as f:
+        #f: instance_name, instance_dim,method, successes, best, av
+        print ("Successes Best Avgerage Trials_Min Trials_Avg Time")
+        for i in range(len(lkh_results)):
+            print ("------%s------" % (instance_names[i]))
+            print (lkh_results[i])
+            print (neurolkh_r_results[i])
+            print (neurolkh_m_results[i])
+            print (vsr_lkh_results[i])
+            for j in [lkh_results[i], neurolkh_r_results[i], neurolkh_m_results[i],vsr_lkh_results[i]]:
+                line = j.insert(0, instance_names[i])
+                f.write(','.join(str(x) for x in line))
