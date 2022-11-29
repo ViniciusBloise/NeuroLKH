@@ -226,5 +226,5 @@ if __name__ == "__main__":
             print (neurolkh_m_results[i])
             print (vsr_lkh_results[i])
             for j in [lkh_results[i], neurolkh_r_results[i], neurolkh_m_results[i],vsr_lkh_results[i]]:
-                line = j.insert(0, instance_names[i])
+                line = list(j); line.insert(0, instance_names[i])
                 f.write(','.join(str(x) for x in line))
