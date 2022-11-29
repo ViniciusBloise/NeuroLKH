@@ -191,7 +191,7 @@ def create_stat_file(stats_output: str):
     return filename
 
 def get_prob_size(inst_name: str):
-    return re.find(r'\d+', inst_name)[0]
+    return re.findall(r'\d+', inst_name)[0]
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='')
