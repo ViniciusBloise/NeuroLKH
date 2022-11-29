@@ -154,7 +154,7 @@ def read_results(log_filename):
     results = []
     with open(log_filename, "r") as f:
         lines = f.readlines()
-        successes = int(lines[-7].split(" ")[-2].split("/")[0])
+        successes = int(lines[-7].split(" ")[-1].split("/")[0])
         cost_min = float(lines[-6].split(",")[0].split(" ")[-1])
         cost_avg = float(lines[-6].split(",")[1].split(" ")[-1])
         trials_min = float(lines[-4].split(",")[0].split(" ")[-1])

@@ -58,7 +58,7 @@ void PrintStatistics()
     double _TimeMin = TimeMin;
     GainType _Optimum = Optimum;
 
-    printff("Successes/Runs = %d/%d \n", Successes, Runs);
+    printff("Successes/Runs = %d/%d\n", Successes, Runs);
     if (_Runs == 0)
         _Runs = 1;
     if (_TrialsMin > TrialsMax)
