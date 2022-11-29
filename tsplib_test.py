@@ -216,8 +216,10 @@ if __name__ == "__main__":
 
 
     stats_file = create_stat_file(args.stats_output)
+    methods = ['LKH', 'NeuroLKH', 'NeuroLKH/m','VSR-LKH']
+
     with open(stats_file, "w") as f:
-        #f: instance_name, instance_dim,method, successes, best, av
+        #f: instance_name, instance_dim, method, successes, best, av
         print ("Successes Best Avgerage Trials_Min Trials_Avg Time")
         for i in range(len(lkh_results)):
             print ("------%s------" % (instance_names[i]))
@@ -225,6 +227,9 @@ if __name__ == "__main__":
             print (neurolkh_r_results[i])
             print (neurolkh_m_results[i])
             print (vsr_lkh_results[i])
-            for j in [lkh_results[i], neurolkh_r_results[i], neurolkh_m_results[i],vsr_lkh_results[i]]:
-                line = list(j); line.insert(0, instance_names[i])
-                f.write(','.join(str(x) for x in line))
+            prob_size = get_prob_size(instance_names[i])
+            for j, m in zip([lkh_results[i], neurolkh_r_results[i], neurolkh_m_results[i],vsr_lkh_results[i]],methods):
+                line = list(j); line.insert(0, instance_names[i]); 
+                line.insert(1, prob_size)
+                line.insert(2, m)
+                f.write(','.join(str(x) for x in line) + '\n')
