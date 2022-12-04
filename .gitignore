@@ -18,3 +18,5 @@ train/*.pkl
 train/*.icloud
 val/*.pkl
 *.zip
+*.xz
+*.pt
