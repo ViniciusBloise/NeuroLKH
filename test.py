@@ -46,6 +46,10 @@ def write_para(dataset_name, instance_name, instance_filename, method, para_file
             f.write("GerenatingFeature\n")
             f.write("Feat_FILE = result/" + dataset_name +
                     "/feat/" + instance_name + ".txt\n")
+        elif method == 'VSR-LKH':
+            f.write(f"CANDIDATE_SET_TYPE = {cand_set_type}\n")
+            f.write(f"CANDIDATE_FILE = result/{dataset_name}/candidate/{instance_name}.txt\n")
+            f.write(f"PI_FILE = result/{dataset_name}/pi/{instance_name}.txt\n")
         else:
             assert method == "LKH"
             f.write("CANDIDATE_SET_TYPE = " + cand_set_type + "\n")
@@ -107,7 +111,7 @@ def solve_LKH(method, dataset_name: str, instance, instance_name, rerun=False, m
     if rerun or not os.path.isfile(log_filename):
         write_instance(instance, instance_name, instance_filename)
         write_para(dataset_name, instance_name, instance_filename,
-                   "LKH", para_filename, max_trials=max_trials)
+                   method, para_filename, max_trials=max_trials)
         with open(log_filename, "w") as f:
             exec_LKH = './LKH' if method == 'LKH' else '../VSR-LKH/LKH'
             check_call([exec_LKH, para_filename], stdout=f)
