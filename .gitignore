@@ -1,4 +1,8 @@
+.DS_Store
 .idea/
+*.pt
+*.xz
+*.zip
 **/*.pyc
 **/*.so
 **/build
@@ -14,10 +18,6 @@ SRC_swig/LKH.py
 SRC/OBJ
 test/*.pkl
 tmp/
-train/*.pkl
 train/*.icloud
+train/*.pkl
 val/*.pkl
-*.zip
-*.xz
-*.pt
-.DS_Store

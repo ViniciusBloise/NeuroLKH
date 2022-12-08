@@ -37,22 +37,20 @@ def write_para(dataset_name, instance_name, instance_filename, method, para_file
         f.write("SEED = " + str(seed) + "\n")
         if method == "NeuroLKH":
             f.write("SUBGRADIENT = NO\n")
-            f.write("CANDIDATE_SET_TYPE = " + cand_set_type + "\n")
-            f.write("CANDIDATE_FILE = result/" + dataset_name +
-                    "/candidate/" + instance_name + ".txt\n")
-            f.write("Pi_FILE = result/" + dataset_name +
-                    "/pi/" + instance_name + ".txt\n")
+            f.write(f"CANDIDATE_SET_TYPE = {cand_set_type}\n")
+            f.write(f"CANDIDATE_FILE = result/{dataset_name}/candidate/{instance_name}.txt\n")
+            f.write(f"PI_FILE = result/{dataset_name}/pi/{instance_name}.txt\n")
         elif method == "FeatGenerate":
             f.write("GerenatingFeature\n")
             f.write("Feat_FILE = result/" + dataset_name +
                     "/feat/" + instance_name + ".txt\n")
-        elif method == 'VSR-LKH':
+        elif method == 'VSR-LKH+neuro':
             f.write(f"CANDIDATE_SET_TYPE = {cand_set_type}\n")
             f.write(f"CANDIDATE_FILE = result/{dataset_name}/candidate/{instance_name}.txt\n")
             f.write(f"PI_FILE = result/{dataset_name}/pi/{instance_name}.txt\n")
         else:
-            assert method == "LKH"
-            f.write("CANDIDATE_SET_TYPE = " + cand_set_type + "\n")
+            assert method == "LKH" or method == 'VSR-LKH'
+            f.write(f"CANDIDATE_SET_TYPE = {cand_set_type}\n")
 
 
 def read_feat(feat_filename):
@@ -94,9 +92,7 @@ def write_candidate_pi(dataset_name: str, instance_name: str, candidate, pi):
 
 
 def method_wrapper(args):
-    if args[0] == "LKH":
-        return solve_LKH(*args)
-    elif args[0] == 'VSR-LKH':
+    if args[0] == "LKH" or args[0].startswith('VSR-LKH'):
         return solve_LKH(*args)
     elif args[0] == "NeuroLKH":
         return solve_NeuroLKH(*args[1:])
